@@ -1,14 +1,10 @@
-import { render, screen } from "@testing-library/react";
+Ôªøimport { render, screen } from "@testing-library/react";
 
-import { SectionHeading } from "../ui/section-heading";
+import { FeaturedStationsSection } from "./featured-stations-section";
 
-function renderFeaturedStationsHeading() {
-  render(<SectionHeading eyebrow="Ç®Ç∑Ç∑Çﬂ" title="íçñ⁄ÇÃìπÇÃâw" level={3} />);
-}
+test("shows the featured stations section heading", () => {
+  render(<FeaturedStationsSection />);
 
-test("shows the shared section heading with an explicit level", () => {
-  renderFeaturedStationsHeading();
-
-  expect(screen.getByText("Ç®Ç∑Ç∑Çﬂ")).toBeInTheDocument();
-  expect(screen.getByRole("heading", { level: 3, name: "íçñ⁄ÇÃìπÇÃâw" })).toBeInTheDocument();
+  expect(screen.getByText("\u304A\u3059\u3059\u3081")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "\u6CE8\u76EE\u306E\u9053\u306E\u99C5" })).toBeInTheDocument();
 });
