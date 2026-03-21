@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+﻿import { render, screen } from "@testing-library/react";
 
 import { FeaturedEventsSection } from "./featured-events-section";
 
@@ -19,7 +19,7 @@ test("shows featured event items for discovery", () => {
   );
 
   expect(screen.getByText("イベント")).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "今気になるイベント" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "注目イベント" })).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: "春のいちごフェア" })).toBeInTheDocument();
   expect(screen.getByText("3月下旬の週末")).toBeInTheDocument();
   expect(screen.getByText("道の駅 みのりの郷東金")).toBeInTheDocument();

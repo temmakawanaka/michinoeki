@@ -1,4 +1,4 @@
-import type { FeaturedEvent } from "@/lib/content/home-highlights";
+﻿import type { FeaturedEvent } from "@/lib/content/home-highlights";
 
 import { InfoChip } from "../ui/info-chip";
 import { SectionHeading } from "../ui/section-heading";
@@ -9,10 +9,10 @@ type FeaturedEventsSectionProps = {
 
 export function FeaturedEventsSection({ items }: FeaturedEventsSectionProps) {
   return (
-    <section aria-label="今気になるイベント" className="grid gap-6">
+    <section aria-label="注目イベント" className="grid gap-6">
       <SectionHeading
         eyebrow="イベント"
-        title="今気になるイベント"
+        title="注目イベント"
         description="いま立ち寄りたくなる話題を並べて、道の駅を探す楽しさを少し広げます。"
       />
 
