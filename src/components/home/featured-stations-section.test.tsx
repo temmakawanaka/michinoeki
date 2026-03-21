@@ -2,13 +2,13 @@ import { render, screen } from "@testing-library/react";
 
 import { SectionHeading } from "../ui/section-heading";
 
-function FeaturedStationsSectionTestHarness() {
-  return <SectionHeading eyebrow="ãŠã™ã™ã‚" title="æ³¨ç›®ã®é“ã®é§…" />;
+function renderFeaturedStationsHeading() {
+  render(<SectionHeading eyebrow="‚¨‚·‚·‚ß" title="’–Ú‚Ì“¹‚Ì‰w" level={3} />);
 }
 
-test("shows Japanese eyebrow and title", () => {
-  render(<FeaturedStationsSectionTestHarness />);
+test("shows the shared section heading with an explicit level", () => {
+  renderFeaturedStationsHeading();
 
-  expect(screen.getByText("ãŠã™ã™ã‚")).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "æ³¨ç›®ã®é“ã®é§…" })).toBeInTheDocument();
+  expect(screen.getByText("‚¨‚·‚·‚ß")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 3, name: "’–Ú‚Ì“¹‚Ì‰w" })).toBeInTheDocument();
 });
