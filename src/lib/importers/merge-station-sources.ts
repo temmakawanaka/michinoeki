@@ -105,22 +105,22 @@ function resolveConfidence<T>(group: CandidateGroup<T>): ConfidenceLevel {
 
 // eslint-disable-next-line no-unused-vars
 function pickField<T>(records: NormalizedStationRecord[], selector: (record: NormalizedStationRecord) => T | null): MergedField<T> {
-  const candidates = records
-    .map((record) => {
-      const value = selector(record);
+  const candidates: Candidate<T>[] = [];
 
-      if (value === null || value === undefined) {
-        return null;
-      }
+  for (const record of records) {
+    const value = selector(record);
 
-      return {
-        value,
-        sourceName: record.sourceName,
-        sourceType: record.sourceType,
-        trustScore: record.trustScore,
-      };
-    })
-    .filter((candidate): candidate is Candidate<T> => candidate !== null);
+    if (value === null || value === undefined) {
+      continue;
+    }
+
+    candidates.push({
+      value,
+      sourceName: record.sourceName,
+      sourceType: record.sourceType,
+      trustScore: record.trustScore,
+    });
+  }
 
   if (candidates.length === 0) {
     return {

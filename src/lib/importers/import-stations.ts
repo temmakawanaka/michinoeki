@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/db";
 
 import { fetchSourceRecords } from "./fetch-source-records";
@@ -20,6 +22,10 @@ function hasParkingData(merged: ReturnType<typeof mergeStationSources>) {
   return [merged.parking.regularCars.value, merged.parking.accessibleCars.value, merged.parking.largeVehicles.value].some(
     (value) => value !== null,
   );
+}
+
+function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
 export async function importStationsFromFiles(filePaths: string[]) {
@@ -67,9 +73,9 @@ export async function importStationsFromFiles(filePaths: string[]) {
         sourceName: record.sourceName,
         sourceType: record.sourceType,
         sourceUrl: record.sourceUrl,
-        rawPayload: record.rawPayload,
+        rawPayload: toInputJsonValue(record.rawPayload),
         extractedName: record.name,
-        extractedValue: {
+        extractedValue: toInputJsonValue({
           prefecture: record.prefecture,
           address: record.address,
           openingHours: record.openingHours,
@@ -77,7 +83,7 @@ export async function importStationsFromFiles(filePaths: string[]) {
           websiteUrl: record.websiteUrl,
           parking: record.parking,
           facilities: record.facilities,
-        },
+        }),
         trustScore: record.trustScore,
         observedAt: record.observedAt,
       })),

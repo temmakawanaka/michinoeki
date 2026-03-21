@@ -2,6 +2,7 @@
   {
     "sourceName": "aggregatorA",
     "sourceUrl": "https://example.com/aggregator-a/fuji",
+    "slug": "michinoeki-fuji",
     "name": "Michi-no-Eki Fuji",
     "prefecture": "Shizuoka",
     "address": "669-1 Gokanjima, Fuji, Shizuoka",

@@ -6,7 +6,8 @@
 
 1. Docker Desktop を起動する
 2. 環境変数を `.env` に設定する
-3. Postgres を立ち上げる
+3. Postgres を立ち上げてスキーマを反映する
+4. サンプルデータを取り込む
 
 ```bash
 npm run db:up
@@ -29,3 +30,18 @@ npx tsx scripts/import-stations.ts data/sources/sample-source-a.json data/source
 ```
 
 このサンプルでは `mlit` と 2 つの集約ソースを比較し、`Station` と `StationSourceRecord` に保存します。
+
+## 動作確認
+
+```bash
+npm test
+npm run lint
+npm run test:e2e
+npm run build
+```
+
+ローカルでの確認ポイントは次のとおりです。
+
+- トップページから駅名、都道府県、住所のキーワードで検索できる
+- 検索結果から詳細ページへ遷移できる
+- 詳細ページで営業時間、定休日、信頼度、ソース件数を確認できる
