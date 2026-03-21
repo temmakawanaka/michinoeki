@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import type { PrefectureEntry } from "@/lib/content/home-highlights";
 
@@ -14,7 +14,7 @@ export function PrefectureEntrySection({ items }: PrefectureEntrySectionProps) {
       <SectionHeading
         eyebrow="都道府県から"
         title="行き先の空気から探したいときに"
-        description="全国をいくつかの入口からたどれるようにして、検索だけに頼らない回遊を支えます。"
+        description="seed 済みの検索結果へ確実につながる入口だけを置き、空検索を避けられるようにしています。"
       />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
@@ -35,13 +35,13 @@ export function PrefectureEntrySection({ items }: PrefectureEntrySectionProps) {
         </div>
 
         <aside className="grid gap-4 rounded-[32px] border border-[color:var(--color-sky-deep)]/15 bg-[linear-gradient(180deg,rgba(217,237,247,0.58),rgba(247,241,227,0.9))] p-6 shadow-[0_18px_52px_rgba(23,33,26,0.07)]">
-          <p className="text-xs font-semibold tracking-[0.28em] text-[color:var(--color-sky-deep)]">全国から入口を選ぶ</p>
-          <h3 className="text-2xl font-semibold tracking-tight text-[color:var(--color-ink)]">まず地域を決めてから、気になる駅を絞り込む。</h3>
+          <p className="text-xs font-semibold tracking-[0.28em] text-[color:var(--color-sky-deep)]">実在データから入口を選ぶ</p>
+          <h3 className="text-2xl font-semibold tracking-tight text-[color:var(--color-ink)]">まず検索結果が返る地域から、気になる駅を絞り込む。</h3>
           <p className="text-sm leading-7 text-[color:var(--color-ink-muted)]">
-            都道府県から入ると、海沿いのルートや高原ドライブなど、週末の空気感に合わせて候補を探しやすくなります。
+            現在のサンプルデータでは、実際に検索結果へ進める都道府県だけをホームに掲載しています。
           </p>
           <div className="grid gap-3 rounded-[24px] bg-white/72 p-4 text-sm text-[color:var(--color-ink)]/76">
-            <p>検索で迷ったら「静岡県」「北海道」などの地名から入るのもおすすめです。</p>
+            <p>まずは「静岡県」から入り、ヒーロー検索と組み合わせて絞り込む導線を優先しています。</p>
             <p>気になる駅が見つかったら、そのまま営業時間や定休日の確認へ進めます。</p>
           </div>
         </aside>

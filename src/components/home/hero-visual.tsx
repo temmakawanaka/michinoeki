@@ -1,7 +1,8 @@
-import { featuredEvents, featuredStations } from "@/lib/content/home-highlights";
+﻿import { featuredEvents, featuredStations } from "@/lib/content/home-highlights";
 
 export function HeroVisual() {
-  const [leadStation, secondaryStation] = featuredStations;
+  const leadStation = featuredStations[0];
+  const secondaryStation = featuredStations[1] ?? leadStation;
   const [leadEvent] = featuredEvents;
 
   return (
@@ -43,9 +44,9 @@ export function HeroVisual() {
             </div>
 
             <div className="rounded-[24px] border border-dashed border-[color:var(--color-sky-deep)]/25 bg-[rgba(247,241,227,0.82)] p-4">
-              <p className="text-xs font-semibold tracking-[0.24em] text-[color:var(--color-moss)]">次の寄り道候補</p>
+              <p className="text-xs font-semibold tracking-[0.24em] text-[color:var(--color-moss)]">詳細ページへ進める駅</p>
               <p className="mt-2 text-lg font-semibold text-[color:var(--color-ink)]">{secondaryStation.name}</p>
-              <p className="mt-2 text-sm leading-6 text-[color:var(--color-ink-muted)]">海沿いの空気や買い物気分など、検索の前に旅のきっかけを見つけられる構成です。</p>
+              <p className="mt-2 text-sm leading-6 text-[color:var(--color-ink-muted)]">ホームの注目カードから、そのまま実在する詳細ページへ進める構成にそろえています。</p>
             </div>
           </div>
         </div>
