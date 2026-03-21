@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Station {
+  id             String                @id @default(cuid())
+  slug           String                @unique
+  name           String
+  prefecture     String
+  address        String
+  latitude       Float?
+  longitude      Float?
+  openingHours   String?
+  closingDays    String?
+  websiteUrl     String?
+  dataConfidence String?
+  sourceRecords  StationSourceRecord[]
+  parking        ParkingCapacity?
+  facilities     StationFacilities?
+}
+
+model StationSourceRecord {
+  id             String   @id @default(cuid())
+  stationId      String
+  sourceName     String
+  sourceType     String
+  sourceUrl      String?
+  rawPayload     Json
+  extractedName  String?
+  extractedValue Json?
+  trustScore     Int
+  observedAt     DateTime @default(now())
+  station        Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@index([stationId])
+}
+
+model ParkingCapacity {
+  id             String  @id @default(cuid())
+  stationId      String  @unique
+  regularCars    Int?
+  accessibleCars Int?
+  largeVehicles  Int?
+  station        Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+}
+
+model StationFacilities {
+  id        String  @id @default(cuid())
+  stationId String  @unique
+  hasShop   Boolean @default(false)
+  hasWifi   Boolean @default(false)
+  station   Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+}
