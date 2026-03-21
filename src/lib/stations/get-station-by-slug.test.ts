@@ -5,4 +5,6 @@ test("returns a station by slug", async () => {
 
   expect(station?.name).toBe("Michi-no-Eki Fuji");
   expect(station?.sourceRecords.length).toBeGreaterThan(0);
+  expect(station?.parking?.regularCars).toBe(52);
+  expect(station?.facilities?.hasWifi).toBe(true);
 });
