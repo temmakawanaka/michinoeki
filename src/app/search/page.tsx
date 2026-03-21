@@ -1,4 +1,4 @@
-﻿import { PrefectureFilter } from "@/components/search/prefecture-filter";
+import { PrefectureFilter } from "@/components/search/prefecture-filter";
 import { StationCard } from "@/components/stations/station-card";
 import { searchStations } from "@/lib/stations/search-stations";
 
@@ -15,9 +15,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <section className="mx-auto grid max-w-6xl gap-6 py-10">
       <div className="grid gap-3">
-        <p className="text-sm uppercase tracking-[0.24em] text-moss">Search Results</p>
-        <h1 className="text-3xl font-semibold text-ink">{result.total} stations found</h1>
-        <p className="text-sm text-black/65">Keyword: {q || "All stations"}</p>
+        <p className="text-sm uppercase tracking-[0.24em] text-moss">検索結果</p>
+        <h1 className="text-3xl font-semibold text-ink">{result.total}件の道の駅が見つかりました</h1>
+        <p className="text-sm text-black/65">検索キーワード: {q || "すべての道の駅"}</p>
         <PrefectureFilter selected={prefecture} />
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

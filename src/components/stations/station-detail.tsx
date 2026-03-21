@@ -25,6 +25,14 @@ type StationDetailProps = {
   };
 };
 
+function formatConfidence(value?: string | null) {
+  if (value === "high") return "高";
+  if (value === "medium") return "中";
+  if (value === "low") return "低";
+
+  return "未確認";
+}
+
 export function StationDetail({ station }: StationDetailProps) {
   return (
     <section className="mx-auto grid max-w-5xl gap-8 py-10">
@@ -33,28 +41,28 @@ export function StationDetail({ station }: StationDetailProps) {
         <h1 className="text-4xl font-semibold text-ink">{station.name}</h1>
         <p className="text-base leading-7 text-black/75">{station.address}</p>
         <div className="grid gap-2 text-sm text-black/75 md:grid-cols-2">
-          <p>Opening Hours: {station.openingHours ?? "Unconfirmed"}</p>
-          <p>Closed: {station.closingDays ?? "Unconfirmed"}</p>
-          <p>Confidence: {station.dataConfidence ?? "unknown"}</p>
-          <p>Sources: {station.sourceRecords.length}</p>
+          <p>営業時間: {station.openingHours ?? "未確認"}</p>
+          <p>定休日: {station.closingDays ?? "未確認"}</p>
+          <p>信頼度: {formatConfidence(station.dataConfidence)}</p>
+          <p>参照ソース数: {station.sourceRecords.length}</p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <article className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-ink">Parking</h2>
+          <h2 className="text-lg font-semibold text-ink">駐車場</h2>
           <ul className="mt-3 grid gap-2 text-sm text-black/75">
-            <li>Regular: {station.parking?.regularCars ?? "-"}</li>
-            <li>Accessible: {station.parking?.accessibleCars ?? "-"}</li>
-            <li>Large Vehicles: {station.parking?.largeVehicles ?? "-"}</li>
+            <li>普通車: {station.parking?.regularCars ?? "-"}</li>
+            <li>障がい者用: {station.parking?.accessibleCars ?? "-"}</li>
+            <li>大型車: {station.parking?.largeVehicles ?? "-"}</li>
           </ul>
         </article>
 
         <article className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-ink">Facilities</h2>
+          <h2 className="text-lg font-semibold text-ink">設備</h2>
           <ul className="mt-3 grid gap-2 text-sm text-black/75">
-            <li>Shop: {station.facilities?.hasShop ? "Yes" : "No"}</li>
-            <li>Wi-Fi: {station.facilities?.hasWifi ? "Yes" : "No"}</li>
+            <li>売店: {station.facilities?.hasShop ? "あり" : "なし"}</li>
+            <li>Wi-Fi: {station.facilities?.hasWifi ? "あり" : "なし"}</li>
           </ul>
         </article>
       </div>

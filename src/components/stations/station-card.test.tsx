@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 import { StationCard } from "./station-card";
 
@@ -7,13 +7,13 @@ test("shows basic station summary", () => {
     <StationCard
       station={{
         slug: "michinoeki-fuji",
-        name: "Michi-no-Eki Fuji",
-        prefecture: "Shizuoka",
-        address: "669-1 Gokanjima, Fuji, Shizuoka",
+        name: "道の駅 富士",
+        prefecture: "静岡県",
+        address: "静岡県富士市五貫島669-1",
       }}
     />,
   );
 
-  expect(screen.getByText("Michi-no-Eki Fuji")).toBeInTheDocument();
-  expect(screen.getByText("Shizuoka")).toBeInTheDocument();
+  expect(screen.getByText("道の駅 富士")).toBeInTheDocument();
+  expect(screen.getByText("静岡県")).toBeInTheDocument();
 });

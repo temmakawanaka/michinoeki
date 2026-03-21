@@ -4,5 +4,5 @@ import { SiteHeader } from "./site-header";
 
 test("renders site title", () => {
   render(<SiteHeader />);
-  expect(screen.getByText("Michi no Eki Guide")).toBeInTheDocument();
+  expect(screen.getByText("道の駅ガイド")).toBeInTheDocument();
 });

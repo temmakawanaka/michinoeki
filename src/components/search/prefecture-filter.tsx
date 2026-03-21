@@ -1,4 +1,4 @@
-﻿const PREFECTURES = ["Hokkaido", "Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima", "Shizuoka"];
+const PREFECTURES = ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "静岡県"];
 
 export function PrefectureFilter({ selected }: { selected?: string }) {
   return (

@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 import { StationDetail } from "./station-detail";
 
@@ -7,11 +7,11 @@ test("shows station detail fields", () => {
     <StationDetail
       station={{
         slug: "michinoeki-fuji",
-        name: "Michi-no-Eki Fuji",
-        prefecture: "Shizuoka",
-        address: "669-1 Gokanjima, Fuji, Shizuoka",
+        name: "道の駅 富士",
+        prefecture: "静岡県",
+        address: "静岡県富士市五貫島669-1",
         openingHours: "09:00-18:00",
-        closingDays: "Open daily",
+        closingDays: "年中無休",
         dataConfidence: "high",
         parking: { regularCars: 52, accessibleCars: 2, largeVehicles: 12 },
         facilities: { hasShop: true, hasWifi: true },
@@ -20,8 +20,8 @@ test("shows station detail fields", () => {
     />,
   );
 
-  expect(screen.getByRole("heading", { name: "Michi-no-Eki Fuji" })).toBeInTheDocument();
-  expect(screen.getByText("669-1 Gokanjima, Fuji, Shizuoka")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "道の駅 富士" })).toBeInTheDocument();
+  expect(screen.getByText("静岡県富士市五貫島669-1")).toBeInTheDocument();
   expect(screen.getByText(/09:00-18:00/)).toBeInTheDocument();
-  expect(screen.getByText(/high/i)).toBeInTheDocument();
+  expect(screen.getByText(/高/)).toBeInTheDocument();
 });
