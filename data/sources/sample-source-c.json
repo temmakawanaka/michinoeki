@@ -1,0 +1,17 @@
+[
+  {
+    "sourceName": "aggregatorB",
+    "sourceUrl": "https://example.com/aggregator-b/fuji",
+    "name": "Michi-no-Eki Fuji",
+    "prefecture": "Shizuoka",
+    "address": "669-1 Gokanjima, Fuji, Shizuoka",
+    "openingHours": "09:00-18:00",
+    "closingDays": "Open daily",
+    "websiteUrl": "https://example.com/fuji",
+    "parkingRegular": 52,
+    "parkingAccessible": 2,
+    "parkingLarge": 12,
+    "hasShop": true,
+    "hasWifi": true
+  }
+]
