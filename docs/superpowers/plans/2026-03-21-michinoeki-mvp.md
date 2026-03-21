@@ -1,26 +1,80 @@
-﻿# Michinoeki Directory MVP Implementation Plan
+﻿# 道の駅ディレクトリ MVP 実装計画
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **エージェント向け:** この計画の実装では `superpowers:subagent-driven-development` の利用を推奨します。あるいは `superpowers:executing-plans` を使って、このチェックボックス形式 (`- [ ]`) の手順を順に実行してください。
 
-**Goal:** Build the first public MVP of the michinoeki service: a nationwide station directory with search, result listing, and detail pages backed by a structured station master database.
+**ゴール:** 全国の道の駅を対象に、検索、一覧表示、詳細ページを備えた最初の公開 MVP を、PostgreSQL 上の構造化された道の駅マスタを土台に構築する。
 
-**Architecture:** Use a single Next.js application with server-rendered pages and route handlers, backed by a relational database managed through Prisma. Model station master data in a normalized way so the MVP can ship with basic search and detail pages now, while leaving room for future updates, facilities filtering, and community features.
+**アーキテクチャ:** Next.js を単一アプリとして使い、サーバーサイド描画ページと Route Handler を実装する。データは Prisma 経由で PostgreSQL に保存し、MVP では基本的な検索と詳細表示を提供する。取り込み処理では、複数の道の駅情報ソースを取得・正規化・比較し、信頼度ルールに基づいて採用値を決める。
 
-**Tech Stack:** Next.js App Router, TypeScript, React, Tailwind CSS, Prisma ORM, SQLite for local development, Vitest, React Testing Library, Playwright, Zod, ESLint
+**技術スタック:** Next.js App Router, TypeScript, React, Tailwind CSS, Prisma ORM, PostgreSQL, Docker Compose, Vitest, React Testing Library, Playwright, Zod, ESLint
 
 ---
 
-## Assumptions
+## 前提
 
-- This repository is still greenfield, so the plan includes initial scaffolding.
-- The first implementation should optimize for developer speed and correctness over production-scale infrastructure.
-- Local development will use SQLite. If production later needs PostgreSQL, the Prisma schema can be adapted after the MVP is validated.
-- The first import should prove the shape of the data pipeline. It does not need perfect nationwide completeness on day one, but it must support nationwide records structurally.
-- Test snippets use ASCII sample strings to avoid terminal encoding issues while the real product copy can stay Japanese.
+- このリポジトリはまだほぼ空なので、初期セットアップも計画に含める。
+- 開発環境から PostgreSQL を使い、ローカルでは Docker Compose で起動する。
+- MVP では全国データを扱える構造を先に作り、データの網羅率は段階的に上げる。
+- 国や自治体などの一次ソースを最優先し、それ以外のサイトは補助ソースとして扱う。
+- 値の採用は「ソースの信頼度」と「複数ソース間の一致度」の両方で判断する。
+- テスト例の文字列は、端末の文字コード問題を避けるため ASCII ベースにしている。実際の画面文言は日本語で構わない。
 
-## Proposed File Structure
+## 技術選定理由
 
-### Root App and Tooling
+### Next.js App Router
+
+- 検索結果ページと詳細ページを SSR で素直に作りやすい。
+- API Route も同じリポジトリ内で持てるので、MVP の構成がシンプルになる。
+- 画面、API、メタデータを分散させずに進められる。
+
+### TypeScript
+
+- フロントエンドとバックエンドで型を共有できる。
+- データ項目が多い道の駅ドメインでは、型の明示がそのままバグ防止になる。
+- 取り込み処理や正規化ロジックでも型の恩恵が大きい。
+
+### React
+
+- 検索フォーム、一覧カード、詳細表示などの UI を部品として整理しやすい。
+- 将来的に管理画面や投稿画面へ広げるときも再利用しやすい。
+
+### PostgreSQL
+
+- 最初から本番を見据えたリレーショナル DB を使える。
+- 構造化カラムと JSONB を併用でき、ソース比較結果や証跡を持ちやすい。
+- 将来、全文検索や拡張機能を使いたくなった場合にも伸びしろがある。
+
+### Prisma
+
+- スキーマをコードとして管理できる。
+- PostgreSQL の migration を安全に扱いやすい。
+- 型付きクエリで道の駅マスタやソース証跡を扱いやすい。
+
+### Docker Compose
+
+- ローカルで PostgreSQL をすぐ立ち上げられる。
+- 開発者が増えても環境差分を小さくできる。
+- 今回のように「SQLite に逃げず最初から Postgres」をやる前提と相性がよい。
+
+### Tailwind CSS
+
+- MVP の UI を速く組み立てやすい。
+- デザインシステムが未確定でも、クラスベースで調整しやすい。
+
+### Zod
+
+- API 入力値や取り込み元データのバリデーションを明確に書ける。
+- 正規化前後の境界を明示しやすい。
+
+### Vitest / React Testing Library / Playwright
+
+- Vitest: 正規化ロジック、検索ロジック、採用ルールの単体テストを高速に回せる。
+- RTL: フォームやカード UI の振る舞いを軽く検証できる。
+- Playwright: 検索から詳細表示までの MVP 導線をブラウザで保証できる。
+
+## 想定ファイル構成
+
+### ルート設定とツール類
 
 - Create: `package.json`
 - Create: `next.config.ts`
@@ -32,8 +86,9 @@
 - Create: `vitest.config.ts`
 - Create: `.env.example`
 - Create: `.gitignore`
+- Create: `docker-compose.yml`
 
-### App Shell and Routes
+### アプリ本体とルーティング
 
 - Create: `src/app/layout.tsx`
 - Create: `src/app/globals.css`
@@ -42,7 +97,7 @@
 - Create: `src/app/stations/[stationSlug]/page.tsx`
 - Create: `src/app/api/search/route.ts`
 
-### Domain and Data Access
+### ドメインとデータアクセス
 
 - Create: `src/lib/db.ts`
 - Create: `src/lib/env.ts`
@@ -51,7 +106,7 @@
 - Create: `src/lib/stations/station-query-schema.ts`
 - Create: `src/lib/stations/station-mappers.ts`
 
-### UI Components
+### UI コンポーネント
 
 - Create: `src/components/search/hero-search-form.tsx`
 - Create: `src/components/search/prefecture-filter.tsx`
@@ -59,21 +114,28 @@
 - Create: `src/components/stations/station-detail.tsx`
 - Create: `src/components/layout/site-header.tsx`
 
-### Database and Seed Data
+### データベースとシードデータ
 
 - Create: `prisma/schema.prisma`
 - Create: `prisma/seed.ts`
 - Create: `prisma/migrations/`
 - Create: `data/stations/sample-stations.json`
+- Create: `data/sources/sample-source-a.json`
+- Create: `data/sources/sample-source-b.json`
+- Create: `data/sources/sample-source-c.json`
 
-### Import Pipeline
+### 複数ソース取り込み処理
 
 - Create: `scripts/import-stations.ts`
+- Create: `src/lib/importers/source-priority.ts`
 - Create: `src/lib/importers/station-import-schema.ts`
+- Create: `src/lib/importers/fetch-source-records.ts`
 - Create: `src/lib/importers/normalize-station-record.ts`
+- Create: `src/lib/importers/merge-station-sources.ts`
 - Create: `src/lib/importers/normalize-station-record.test.ts`
+- Create: `src/lib/importers/merge-station-sources.test.ts`
 
-### Tests
+### テスト
 
 - Create: `src/lib/stations/search-stations.test.ts`
 - Create: `src/lib/stations/get-station-by-slug.test.ts`
@@ -83,11 +145,11 @@
 - Create: `tests/e2e/home-search.spec.ts`
 - Create: `tests/e2e/station-detail.spec.ts`
 
-### Documentation
+### ドキュメント
 
 - Modify: `README.md`
 
-## Task 1: Bootstrap the project skeleton
+## Task 1: プロジェクトの土台と Postgres 開発環境を作る
 
 **Files:**
 - Create: `package.json`
@@ -100,12 +162,13 @@
 - Create: `vitest.config.ts`
 - Create: `.env.example`
 - Create: `.gitignore`
+- Create: `docker-compose.yml`
 - Create: `src/app/layout.tsx`
 - Create: `src/app/globals.css`
 - Create: `src/components/layout/site-header.tsx`
 - Create: `src/components/layout/site-header.test.tsx`
 
-- [ ] **Step 1: Write a smoke test for the app shell**
+- [ ] **Step 1: アプリ外枠のスモークテストを書く**
 
 ```tsx
 import { render, screen } from "@testing-library/react";
@@ -117,12 +180,12 @@ test("renders site title", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify the project is not ready yet**
+- [ ] **Step 2: 未実装で失敗することを確認する**
 
 Run: `npm test -- src/components/layout/site-header.test.tsx`
-Expected: FAIL because the project files and test runner are not configured yet
+Expected: FAIL
 
-- [ ] **Step 3: Scaffold the Next.js + TypeScript + Tailwind project files**
+- [ ] **Step 3: Next.js + TypeScript + Tailwind の基本ファイルを作る**
 
 ```json
 {
@@ -134,16 +197,35 @@ Expected: FAIL because the project files and test runner are not configured yet
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
   }
 }
 ```
 
-- [ ] **Step 4: Implement the global app shell**
+- [ ] **Step 4: Postgres 用の Docker Compose を追加する**
+
+```yaml
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: michinoeki
+      POSTGRES_USER: michinoeki
+      POSTGRES_PASSWORD: michinoeki
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  postgres-data:
+```
+
+- [ ] **Step 5: グローバルレイアウトを実装する**
 
 ```tsx
 export default function RootLayout({
@@ -160,24 +242,22 @@ export default function RootLayout({
 }
 ```
 
-- [ ] **Step 5: Add the passing unit test for the header**
+- [ ] **Step 6: テストと lint を通す**
 
 Run: `npm test -- src/components/layout/site-header.test.tsx`
 Expected: PASS
 
-- [ ] **Step 6: Sanity-check linting**
-
 Run: `npm run lint`
-Expected: PASS with no lint errors
+Expected: PASS
 
-- [ ] **Step 7: Commit the bootstrap**
+- [ ] **Step 7: ここまでをコミットする**
 
 ```bash
-git add package.json next.config.ts tsconfig.json postcss.config.js tailwind.config.ts eslint.config.js playwright.config.ts vitest.config.ts .env.example .gitignore src/app/layout.tsx src/app/globals.css src/components/layout/site-header.tsx src/components/layout/site-header.test.tsx
-git commit -m "chore: bootstrap nextjs app shell"
+git add package.json next.config.ts tsconfig.json postcss.config.js tailwind.config.ts eslint.config.js playwright.config.ts vitest.config.ts .env.example .gitignore docker-compose.yml src/app/layout.tsx src/app/globals.css src/components/layout/site-header.tsx src/components/layout/site-header.test.tsx
+git commit -m "chore: bootstrap app and postgres dev environment"
 ```
 
-## Task 2: Define the station master data model
+## Task 2: 道の駅マスタとソース証跡のデータモデルを定義する
 
 **Files:**
 - Create: `prisma/schema.prisma`
@@ -187,7 +267,7 @@ git commit -m "chore: bootstrap nextjs app shell"
 - Create: `data/stations/sample-stations.json`
 - Create: `prisma/seed.ts`
 
-- [ ] **Step 1: Write the failing data access test for station lookup**
+- [ ] **Step 1: スラッグ検索の失敗テストを書く**
 
 ```ts
 import { getStationBySlug } from "./get-station-by-slug";
@@ -195,49 +275,51 @@ import { getStationBySlug } from "./get-station-by-slug";
 test("returns a station by slug", async () => {
   const station = await getStationBySlug("michinoeki-fuji");
   expect(station?.name).toBe("Michi-no-Eki Fuji");
-  expect(station?.facilities.hasShop).toBe(true);
+  expect(station?.sourceRecords.length).toBeGreaterThan(0);
 });
 ```
 
-- [ ] **Step 2: Run the lookup test and verify it fails**
+- [ ] **Step 2: 未実装で失敗することを確認する**
 
 Run: `npm test -- src/lib/stations/get-station-by-slug.test.ts`
-Expected: FAIL because there is no schema, seed, or query function yet
+Expected: FAIL
 
-- [ ] **Step 3: Define the Prisma schema**
+- [ ] **Step 3: Prisma スキーマを定義する**
 
 ```prisma
 model Station {
-  id                String           @id @default(cuid())
-  slug              String           @unique
-  name              String
-  prefecture        String
-  address           String
-  latitude          Float?
-  longitude         Float?
-  phoneNumber       String?
-  websiteUrl        String?
-  registeredAt      DateTime?
-  roadName          String?
-  elevationMeters   Int?
-  openingHours      String?
-  closingDays       String?
-  overview          String?
-  signatureItem     String?
-  recommendedMenu   String?
-  souvenir          String?
-  nearbySightseeing String?
-  nearbyOnsen       String?
-  stampLocation     String?
-  stampHours        String?
-  dataSource        String?
-  lastVerifiedAt    DateTime?
-  parking           ParkingCapacity?
-  facilities        StationFacilities?
+  id              String                @id @default(cuid())
+  slug            String                @unique
+  name            String
+  prefecture      String
+  address         String
+  latitude        Float?
+  longitude       Float?
+  openingHours    String?
+  closingDays     String?
+  websiteUrl      String?
+  dataConfidence  String?
+  sourceRecords   StationSourceRecord[]
+  parking         ParkingCapacity?
+  facilities      StationFacilities?
+}
+
+model StationSourceRecord {
+  id              String   @id @default(cuid())
+  stationId       String
+  sourceName      String
+  sourceType      String
+  sourceUrl       String?
+  rawPayload      Json
+  extractedName   String?
+  extractedValue  Json?
+  trustScore      Int
+  observedAt      DateTime @default(now())
+  station         Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
 }
 ```
 
-- [ ] **Step 4: Add related parking and facilities models plus a seed fixture**
+- [ ] **Step 4: 駐車場、設備、ソース証跡を含む seed データを追加する**
 
 ```ts
 await prisma.station.create({
@@ -246,42 +328,47 @@ await prisma.station.create({
     name: "Michi-no-Eki Fuji",
     prefecture: "Shizuoka",
     address: "669-1 Gokanjima, Fuji, Shizuoka",
-    facilities: { create: { hasShop: true, hasWifi: true } },
-    parking: { create: { regularCars: 52, accessibleCars: 2, largeVehicles: 12 } },
+    dataConfidence: "high",
+    sourceRecords: {
+      create: [{ sourceName: "mlit", sourceType: "official", trustScore: 100, rawPayload: {} }],
+    },
   },
 });
 ```
 
-- [ ] **Step 5: Implement `getStationBySlug` with Prisma**
+- [ ] **Step 5: `getStationBySlug` を関連データ込みで実装する**
 
 ```ts
 export async function getStationBySlug(slug: string) {
   return prisma.station.findUnique({
     where: { slug },
-    include: { facilities: true, parking: true },
+    include: { facilities: true, parking: true, sourceRecords: true },
   });
 }
 ```
 
-- [ ] **Step 6: Run migration, seed, and test**
+- [ ] **Step 6: migration、seed、テストを実行する**
+
+Run: `npm run db:up`
+Expected: PostgreSQL container starts
 
 Run: `npm run db:migrate -- --name init_station_master`
 Expected: Prisma migration succeeds
 
 Run: `npm run db:seed`
-Expected: Sample station data is inserted
+Expected: Sample data is inserted
 
 Run: `npm test -- src/lib/stations/get-station-by-slug.test.ts`
 Expected: PASS
 
-- [ ] **Step 7: Commit the data model**
+- [ ] **Step 7: ここまでをコミットする**
 
 ```bash
 git add prisma/schema.prisma prisma/seed.ts src/lib/db.ts src/lib/stations/get-station-by-slug.ts src/lib/stations/get-station-by-slug.test.ts data/stations/sample-stations.json prisma/migrations
-git commit -m "feat: add station master data model"
+git commit -m "feat: add station master and source evidence model"
 ```
 
-## Task 3: Build searchable station queries and API validation
+## Task 3: 検索クエリと API を作る
 
 **Files:**
 - Create: `src/lib/stations/station-query-schema.ts`
@@ -291,7 +378,7 @@ git commit -m "feat: add station master data model"
 - Create: `src/app/api/search/route.ts`
 - Create: `src/app/api/search/route.test.ts`
 
-- [ ] **Step 1: Write the failing search use-case test**
+- [ ] **Step 1: 検索ユースケースの失敗テストを書く**
 
 ```ts
 import { searchStations } from "./search-stations";
@@ -303,12 +390,12 @@ test("filters by keyword and prefecture", async () => {
 });
 ```
 
-- [ ] **Step 2: Run the search test to verify it fails**
+- [ ] **Step 2: 未実装で失敗することを確認する**
 
 Run: `npm test -- src/lib/stations/search-stations.test.ts`
-Expected: FAIL because the query parser and search logic do not exist yet
+Expected: FAIL
 
-- [ ] **Step 3: Add request validation with Zod**
+- [ ] **Step 3: Zod で検索パラメータを定義する**
 
 ```ts
 export const stationQuerySchema = z.object({
@@ -317,7 +404,7 @@ export const stationQuerySchema = z.object({
 });
 ```
 
-- [ ] **Step 4: Implement the Prisma-backed search use case**
+- [ ] **Step 4: Prisma 検索を実装する**
 
 ```ts
 const where = {
@@ -326,9 +413,9 @@ const where = {
     q
       ? {
           OR: [
-            { name: { contains: q } },
-            { prefecture: { contains: q } },
-            { address: { contains: q } },
+            { name: { contains: q, mode: "insensitive" } },
+            { prefecture: { contains: q, mode: "insensitive" } },
+            { address: { contains: q, mode: "insensitive" } },
           ],
         }
       : {},
@@ -336,7 +423,7 @@ const where = {
 };
 ```
 
-- [ ] **Step 5: Add the search API route**
+- [ ] **Step 5: 検索 API Route を追加する**
 
 ```ts
 export async function GET(request: Request) {
@@ -350,19 +437,19 @@ export async function GET(request: Request) {
 }
 ```
 
-- [ ] **Step 6: Run unit tests for domain and route layers**
+- [ ] **Step 6: ドメイン層と API 層のテストを通す**
 
 Run: `npm test -- src/lib/stations/search-stations.test.ts src/app/api/search/route.test.ts`
 Expected: PASS
 
-- [ ] **Step 7: Commit the search layer**
+- [ ] **Step 7: ここまでをコミットする**
 
 ```bash
 git add src/lib/stations/station-query-schema.ts src/lib/stations/station-mappers.ts src/lib/stations/search-stations.ts src/lib/stations/search-stations.test.ts src/app/api/search/route.ts src/app/api/search/route.test.ts
-git commit -m "feat: add station search use case"
+git commit -m "feat: add station search api"
 ```
 
-## Task 4: Build the landing page and results page
+## Task 4: トップページと検索結果一覧を作る
 
 **Files:**
 - Create: `src/app/page.tsx`
@@ -372,7 +459,7 @@ git commit -m "feat: add station search use case"
 - Create: `src/components/stations/station-card.tsx`
 - Create: `src/components/stations/station-card.test.tsx`
 
-- [ ] **Step 1: Write the failing component test for station cards**
+- [ ] **Step 1: 駅カードの失敗テストを書く**
 
 ```tsx
 import { render, screen } from "@testing-library/react";
@@ -380,27 +467,19 @@ import { StationCard } from "./station-card";
 
 test("shows basic station summary", () => {
   render(
-    <StationCard
-      station={{
-        slug: "michinoeki-fuji",
-        name: "Michi-no-Eki Fuji",
-        prefecture: "Shizuoka",
-        address: "669-1 Gokanjima, Fuji, Shizuoka",
-      }}
-    />,
+    <StationCard station={{ slug: "michinoeki-fuji", name: "Michi-no-Eki Fuji", prefecture: "Shizuoka", address: "669-1 Gokanjima, Fuji, Shizuoka" }} />,
   );
 
   expect(screen.getByText("Michi-no-Eki Fuji")).toBeInTheDocument();
-  expect(screen.getByText("Shizuoka")).toBeInTheDocument();
 });
 ```
 
-- [ ] **Step 2: Run the component test and verify it fails**
+- [ ] **Step 2: 未実装で失敗することを確認する**
 
 Run: `npm test -- src/components/stations/station-card.test.tsx`
-Expected: FAIL because the component does not exist yet
+Expected: FAIL
 
-- [ ] **Step 3: Implement the hero search form and station card**
+- [ ] **Step 3: 検索フォームと駅カードを実装する**
 
 ```tsx
 <form action="/search">
@@ -409,43 +488,33 @@ Expected: FAIL because the component does not exist yet
 </form>
 ```
 
-- [ ] **Step 4: Implement the results page using the server-side search function**
+- [ ] **Step 4: サーバーサイド検索結果ページを実装する**
 
 ```tsx
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const result = await searchStations({
-    q: searchParams.q ?? "",
-    prefecture: searchParams.prefecture,
-  });
-
-  return (
-    <section>
-      {result.items.map((station) => (
-        <StationCard key={station.slug} station={station} />
-      ))}
-    </section>
-  );
+  const result = await searchStations({ q: searchParams.q ?? "", prefecture: searchParams.prefecture });
+  return <section>{result.items.map((station) => <StationCard key={station.slug} station={station} />)}</section>;
 }
 ```
 
-- [ ] **Step 5: Re-run the component tests**
+- [ ] **Step 5: テストを通す**
 
 Run: `npm test -- src/components/stations/station-card.test.tsx`
 Expected: PASS
 
-- [ ] **Step 6: Manually verify the search flow in the browser**
+- [ ] **Step 6: 手動で検索導線を確認する**
 
 Run: `npm run dev`
-Expected: The home page renders, form submission navigates to `/search`, and results are listed
+Expected: `/search` に遷移して結果一覧が出る
 
-- [ ] **Step 7: Commit the listing UI**
+- [ ] **Step 7: ここまでをコミットする**
 
 ```bash
 git add src/app/page.tsx src/app/search/page.tsx src/components/search/hero-search-form.tsx src/components/search/prefecture-filter.tsx src/components/stations/station-card.tsx src/components/stations/station-card.test.tsx
-git commit -m "feat: add station directory search pages"
+git commit -m "feat: add search pages"
 ```
 
-## Task 5: Build the station detail page
+## Task 5: 道の駅詳細ページを作る
 
 **Files:**
 - Create: `src/app/stations/[stationSlug]/page.tsx`
@@ -454,47 +523,39 @@ git commit -m "feat: add station directory search pages"
 - Modify: `src/lib/stations/get-station-by-slug.test.ts`
 - Create: `tests/e2e/station-detail.spec.ts`
 
-- [ ] **Step 1: Extend the failing test to cover facility and parking output**
+- [ ] **Step 1: 詳細データ表示の失敗テストを追加する**
 
 ```ts
-test("returns parking and facility data", async () => {
+test("returns parking, facilities, and source evidence", async () => {
   const station = await getStationBySlug("michinoeki-fuji");
-  expect(station?.parking?.regularCars).toBe(52);
-  expect(station?.facilities?.hasWifi).toBe(true);
+  expect(station?.sourceRecords.length).toBeGreaterThan(0);
 });
 ```
 
-- [ ] **Step 2: Run the lookup test and confirm the new expectation fails if needed**
+- [ ] **Step 2: 必要なら失敗を確認する**
 
 Run: `npm test -- src/lib/stations/get-station-by-slug.test.ts`
-Expected: FAIL until related fields are mapped and displayed consistently
+Expected: FAIL
 
-- [ ] **Step 3: Implement the detail presentation component**
+- [ ] **Step 3: 詳細表示コンポーネントを実装する**
 
 ```tsx
 <section>
   <h1>{station.name}</h1>
   <p>{station.address}</p>
-  <dl>
-    <dt>Opening Hours</dt>
-    <dd>{station.openingHours ?? "Unconfirmed"}</dd>
-  </dl>
+  <p>{station.dataConfidence}</p>
 </section>
 ```
 
-- [ ] **Step 4: Add the dynamic station page**
+- [ ] **Step 4: 動的ルートページを追加する**
 
 ```tsx
 const station = await getStationBySlug(params.stationSlug);
-
-if (!station) {
-  notFound();
-}
-
+if (!station) notFound();
 return <StationDetail station={station} />;
 ```
 
-- [ ] **Step 5: Add the end-to-end test for station navigation**
+- [ ] **Step 5: E2E テストを書く**
 
 ```ts
 test("opens a station detail page from search results", async ({ page }) => {
@@ -506,7 +567,7 @@ test("opens a station detail page from search results", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 6: Run unit and e2e checks for the detail flow**
+- [ ] **Step 6: 単体テストと E2E を通す**
 
 Run: `npm test -- src/lib/stations/get-station-by-slug.test.ts`
 Expected: PASS
@@ -514,93 +575,126 @@ Expected: PASS
 Run: `npm run test:e2e -- tests/e2e/station-detail.spec.ts`
 Expected: PASS
 
-- [ ] **Step 7: Commit the detail page**
+- [ ] **Step 7: ここまでをコミットする**
 
 ```bash
 git add src/app/stations/[stationSlug]/page.tsx src/components/stations/station-detail.tsx src/lib/stations/get-station-by-slug.ts src/lib/stations/get-station-by-slug.test.ts tests/e2e/station-detail.spec.ts
 git commit -m "feat: add station detail page"
 ```
 
-## Task 6: Add the import pipeline for structured station records
+## Task 6: 複数ソース比較で道の駅データを取り込む
 
 **Files:**
+- Create: `src/lib/importers/source-priority.ts`
 - Create: `src/lib/importers/station-import-schema.ts`
+- Create: `src/lib/importers/fetch-source-records.ts`
 - Create: `src/lib/importers/normalize-station-record.ts`
+- Create: `src/lib/importers/merge-station-sources.ts`
 - Create: `src/lib/importers/normalize-station-record.test.ts`
+- Create: `src/lib/importers/merge-station-sources.test.ts`
 - Create: `scripts/import-stations.ts`
 - Modify: `prisma/seed.ts`
 - Modify: `README.md`
 
-- [ ] **Step 1: Write the failing normalization test**
+- [ ] **Step 1: 正規化処理の失敗テストを書く**
 
 ```ts
-import { normalizeStationRecord } from "./normalize-station-record";
-
-test("normalizes raw source data into station create input", () => {
+test("normalizes raw source records into comparable station fields", () => {
   const normalized = normalizeStationRecord({
+    sourceName: "mlit",
     station_name: "Michi-no-Eki Fuji",
     prefecture_name: "Shizuoka",
     address_line: "669-1 Gokanjima, Fuji, Shizuoka",
   });
 
-  expect(normalized.slug).toBe("michinoeki-fuji");
-  expect(normalized.prefecture).toBe("Shizuoka");
+  expect(normalized.name).toBe("Michi-no-Eki Fuji");
 });
 ```
 
-- [ ] **Step 2: Run the normalization test to confirm it fails**
-
-Run: `npm test -- src/lib/importers/normalize-station-record.test.ts`
-Expected: FAIL because the importer does not exist yet
-
-- [ ] **Step 3: Define the raw-input schema and normalization rules**
+- [ ] **Step 2: 採用ルールの失敗テストを書く**
 
 ```ts
-export const rawStationSchema = z.object({
-  station_name: z.string(),
-  prefecture_name: z.string(),
-  address_line: z.string(),
-  website_url: z.string().optional(),
+test("prefers official source unless multiple trusted sources agree on another value", () => {
+  const merged = mergeStationSources([
+    { sourceName: "mlit", trustScore: 100, fields: { openingHours: "09:00-18:00" } },
+    { sourceName: "aggregator-a", trustScore: 60, fields: { openingHours: "09:00-18:00" } },
+    { sourceName: "aggregator-b", trustScore: 60, fields: { openingHours: "09:00-18:00" } },
+  ]);
+
+  expect(merged.openingHours.value).toBe("09:00-18:00");
+  expect(merged.openingHours.confidence).toBe("high");
 });
 ```
 
-- [ ] **Step 4: Implement the import script**
+- [ ] **Step 3: ソース信頼度テーブルを定義する**
 
 ```ts
-const records = rawStationSchema.array().parse(JSON.parse(rawJson));
+export const SOURCE_PRIORITY = {
+  mlit: { trustScore: 100, type: "official" },
+  prefecture: { trustScore: 90, type: "official" },
+  stationOfficial: { trustScore: 85, type: "official" },
+  aggregator: { trustScore: 60, type: "secondary" },
+};
+```
 
-for (const record of records) {
-  const data = normalizeStationRecord(record);
-  await prisma.station.upsert({
-    where: { slug: data.slug },
-    update: data,
-    create: data,
-  });
+- [ ] **Step 4: 生データの正規化を実装する**
+
+```ts
+export function normalizeStationRecord(input: RawStationRecord) {
+  return {
+    sourceName: input.sourceName,
+    name: input.station_name,
+    prefecture: input.prefecture_name,
+    address: input.address_line,
+    openingHours: input.opening_hours ?? null,
+  };
 }
 ```
 
-- [ ] **Step 5: Run the importer against sample data**
+- [ ] **Step 5: 複数ソースの比較・採用ロジックを実装する**
 
-Run: `npx tsx scripts/import-stations.ts data/stations/sample-stations.json`
-Expected: The script completes and inserts or updates station rows
-
-- [ ] **Step 6: Update the README with local setup and import instructions**
-
-Run: `npm test -- src/lib/importers/normalize-station-record.test.ts`
-Expected: PASS
-
-- [ ] **Step 7: Commit the import workflow**
-
-```bash
-git add src/lib/importers/station-import-schema.ts src/lib/importers/normalize-station-record.ts src/lib/importers/normalize-station-record.test.ts scripts/import-stations.ts prisma/seed.ts README.md
-git commit -m "feat: add station import pipeline"
+```ts
+export function mergeStationSources(records: NormalizedStationRecord[]) {
+  // official source first, then agreement count, then trust score
+}
 ```
 
-## Task 7: Final verification and MVP polish
+- [ ] **Step 6: 取り込みスクリプトを実装する**
+
+```ts
+const grouped = groupByStationName(records);
+for (const group of grouped) {
+  const merged = mergeStationSources(group);
+  await prisma.station.upsert({ ... });
+  await prisma.stationSourceRecord.createMany({ data: group.map(toSourceRecordRow) });
+}
+```
+
+- [ ] **Step 7: テストとサンプル取り込みを実行する**
+
+Run: `npm test -- src/lib/importers/normalize-station-record.test.ts src/lib/importers/merge-station-sources.test.ts`
+Expected: PASS
+
+Run: `npx tsx scripts/import-stations.ts data/sources/sample-source-a.json data/sources/sample-source-b.json data/sources/sample-source-c.json`
+Expected: 複数ソースを比較して station と source evidence が保存される
+
+- [ ] **Step 8: README に運用方針を書く**
+
+Run: `git diff -- README.md`
+Expected: Docker 起動、Postgres 接続、複数ソース比較ルールが明記されている
+
+- [ ] **Step 9: ここまでをコミットする**
+
+```bash
+git add src/lib/importers/source-priority.ts src/lib/importers/station-import-schema.ts src/lib/importers/fetch-source-records.ts src/lib/importers/normalize-station-record.ts src/lib/importers/merge-station-sources.ts src/lib/importers/normalize-station-record.test.ts src/lib/importers/merge-station-sources.test.ts scripts/import-stations.ts prisma/seed.ts README.md
+git commit -m "feat: add multi-source station import pipeline"
+```
+
+## Task 7: 最終確認と MVP の仕上げ
 
 **Files:**
 - Modify: `README.md`
-- Modify: any touched file if small polish is required during verification
+- Modify: 必要なら軽微な修正を入れる既存ファイル
 - Test: `src/lib/stations/search-stations.test.ts`
 - Test: `src/lib/stations/get-station-by-slug.test.ts`
 - Test: `src/app/api/search/route.test.ts`
@@ -608,7 +702,7 @@ git commit -m "feat: add station import pipeline"
 - Test: `tests/e2e/home-search.spec.ts`
 - Test: `tests/e2e/station-detail.spec.ts`
 
-- [ ] **Step 1: Add the home-page e2e spec if not already present**
+- [ ] **Step 1: トップページ検索の E2E を追加する**
 
 ```ts
 test("searches from the homepage", async ({ page }) => {
@@ -619,41 +713,41 @@ test("searches from the homepage", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 2: Run the full unit test suite**
+- [ ] **Step 2: 単体テストを全部流す**
 
 Run: `npm test`
 Expected: PASS
 
-- [ ] **Step 3: Run lint**
+- [ ] **Step 3: lint を流す**
 
 Run: `npm run lint`
 Expected: PASS
 
-- [ ] **Step 4: Run the full end-to-end suite**
+- [ ] **Step 4: E2E テストを全部流す**
 
 Run: `npm run test:e2e`
 Expected: PASS
 
-- [ ] **Step 5: Run the production build**
+- [ ] **Step 5: 本番ビルドを確認する**
 
 Run: `npm run build`
 Expected: PASS
 
-- [ ] **Step 6: Update README one last time with MVP scope and commands**
+- [ ] **Step 6: README を最終調整する**
 
 Run: `git diff -- README.md`
-Expected: Shows clear local setup, test, seed, and import instructions
+Expected: Docker 起動、migration、seed、複数ソース比較、検索確認手順が明確に書かれている
 
-- [ ] **Step 7: Commit the verified MVP**
+- [ ] **Step 7: ここまでをコミットする**
 
 ```bash
 git add README.md tests/e2e/home-search.spec.ts tests/e2e/station-detail.spec.ts
 git commit -m "docs: finalize michinoeki mvp setup guide"
 ```
 
-## Open Decisions To Revisit During Implementation
+## 実装中に再判断する項目
 
-- Whether to keep SQLite in the first deployed environment or switch to PostgreSQL before launch
-- How to generate slugs for stations whose names do not map cleanly to ASCII
-- Which nationwide source should become the canonical input for the first bulk import
-- Whether prefecture filtering should remain query-string based only or also get dedicated navigation UI
+- 国土交通省以外に、都道府県、各道の駅公式、民間集約サイトのどこまでを初回対象にするか
+- 値の採用ルールを「公式優先固定」にするか、「複数一致で上書き可」にするか
+- 住所や営業時間のように変化しやすい項目と、登録日や道路名のように固定寄りな項目で採用ルールを分けるか
+- 将来的に取得ジョブを定期実行する基盤をどこで持つか
