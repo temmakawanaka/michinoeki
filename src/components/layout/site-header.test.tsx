@@ -2,7 +2,9 @@ import { render, screen } from "@testing-library/react";
 
 import { SiteHeader } from "./site-header";
 
-test("renders site title", () => {
+test("renders the Japanese site header tone", () => {
   render(<SiteHeader />);
-  expect(screen.getByText("道の駅ガイド")).toBeInTheDocument();
+
+  expect(screen.getByText("全国の道の駅をめぐる旅")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "道の駅ガイド" })).toBeInTheDocument();
 });

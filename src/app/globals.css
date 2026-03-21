@@ -1,11 +1,23 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  color: #17211a;
+  --color-ink: #17211a;
+  --color-ink-muted: #5d6a63;
+  --color-moss: #436850;
+  --color-paper: #f7f1e3;
+  --color-sand: #f2e2c6;
+  --color-sky: #d9edf7;
+  --color-sky-deep: #295f8f;
+  --color-clay: #c06b3e;
+  --color-sun: #f5b35c;
+
+  color: var(--color-ink);
+  color-scheme: light;
   background:
     radial-gradient(circle at top left, rgba(192, 107, 62, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(41, 95, 143, 0.12), transparent 28%),
     linear-gradient(180deg, #fbf6ea 0%, #f2ead6 100%);
 }
 
@@ -22,6 +34,8 @@ body {
 
 body {
   min-height: 100vh;
+  color: var(--color-ink);
+  background: transparent;
 }
 
 main {
