@@ -1,17 +1,50 @@
-const PREFECTURES = ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "静岡県"];
+﻿import Link from "next/link";
 
-export function PrefectureFilter({ selected }: { selected?: string }) {
+type PrefectureFilterProps = {
+  prefectures: string[];
+  selected?: string;
+  query?: string;
+};
+
+function buildSearchHref(query?: string, prefecture?: string) {
+  const params = new URLSearchParams();
+
+  if (query) {
+    params.set("q", query);
+  }
+
+  if (prefecture) {
+    params.set("prefecture", prefecture);
+  }
+
+  const search = params.toString();
+  return search ? `/search?${search}` : "/search";
+}
+
+export function PrefectureFilter({ prefectures, selected, query }: PrefectureFilterProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      {PREFECTURES.map((prefecture) => {
+      {selected ? (
+        <Link
+          className="rounded-full px-3 py-1 text-xs font-medium no-underline bg-[color:var(--color-paper)] text-[color:var(--color-ink)]"
+          href={buildSearchHref(query)}
+        >
+          都道府県を解除
+        </Link>
+      ) : null}
+
+      {prefectures.map((prefecture) => {
         const active = prefecture === selected;
+
         return (
-          <span
+          <Link
             key={prefecture}
-            className={`rounded-full px-3 py-1 text-xs font-medium ${active ? "bg-moss text-white" : "bg-black/5 text-black/70"}`}
+            aria-current={active ? "page" : undefined}
+            className={`rounded-full px-3 py-1 text-xs font-medium no-underline ${active ? "bg-moss text-white" : "bg-black/5 text-black/70"}`}
+            href={buildSearchHref(query, prefecture)}
           >
             {prefecture}
-          </span>
+          </Link>
         );
       })}
     </div>

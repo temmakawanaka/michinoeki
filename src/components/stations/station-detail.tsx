@@ -1,3 +1,18 @@
+﻿function formatConfidence(value?: string | null) {
+  if (value === "high") return "高";
+  if (value === "medium") return "中";
+  if (value === "low") return "低";
+
+  return "未確認";
+}
+
+function formatFacility(value?: boolean | null) {
+  if (value === true) return "あり";
+  if (value === false) return "なし";
+
+  return "未確認";
+}
+
 type StationDetailProps = {
   station: {
     slug: string;
@@ -25,14 +40,6 @@ type StationDetailProps = {
   };
 };
 
-function formatConfidence(value?: string | null) {
-  if (value === "high") return "高";
-  if (value === "medium") return "中";
-  if (value === "low") return "低";
-
-  return "未確認";
-}
-
 export function StationDetail({ station }: StationDetailProps) {
   return (
     <section className="mx-auto grid max-w-5xl gap-8 py-10">
@@ -44,7 +51,7 @@ export function StationDetail({ station }: StationDetailProps) {
           <p>営業時間: {station.openingHours ?? "未確認"}</p>
           <p>定休日: {station.closingDays ?? "未確認"}</p>
           <p>信頼度: {formatConfidence(station.dataConfidence)}</p>
-          <p>参照ソース数: {station.sourceRecords.length}</p>
+          <p>ソース数: {station.sourceRecords.length}</p>
         </div>
       </div>
 
@@ -61,8 +68,8 @@ export function StationDetail({ station }: StationDetailProps) {
         <article className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-ink">設備</h2>
           <ul className="mt-3 grid gap-2 text-sm text-black/75">
-            <li>売店: {station.facilities?.hasShop ? "あり" : "なし"}</li>
-            <li>Wi-Fi: {station.facilities?.hasWifi ? "あり" : "なし"}</li>
+            <li>売店: {formatFacility(station.facilities?.hasShop)}</li>
+            <li>Wi-Fi: {formatFacility(station.facilities?.hasWifi)}</li>
           </ul>
         </article>
       </div>
