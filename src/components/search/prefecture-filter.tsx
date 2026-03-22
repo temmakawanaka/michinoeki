@@ -1,8 +1,7 @@
 ﻿import Link from "next/link";
 
-const PREFECTURES = ["北海道", "長野県", "岐阜県", "東京都", "愛知県", "神奈川県", "兵庫県", "静岡県"];
-
 type PrefectureFilterProps = {
+  prefectures: string[];
   selected?: string;
   query?: string;
 };
@@ -22,7 +21,7 @@ function buildSearchHref(query?: string, prefecture?: string) {
   return search ? `/search?${search}` : "/search";
 }
 
-export function PrefectureFilter({ selected, query }: PrefectureFilterProps) {
+export function PrefectureFilter({ prefectures, selected, query }: PrefectureFilterProps) {
   return (
     <div className="flex flex-wrap gap-2">
       {selected ? (
@@ -34,7 +33,7 @@ export function PrefectureFilter({ selected, query }: PrefectureFilterProps) {
         </Link>
       ) : null}
 
-      {PREFECTURES.map((prefecture) => {
+      {prefectures.map((prefecture) => {
         const active = prefecture === selected;
 
         return (
