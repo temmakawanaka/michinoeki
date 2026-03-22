@@ -1,4 +1,4 @@
-const quickStarts = ["駅名から探す", "都道府県でしぼる", "週末の寄り道候補を見る"];
+﻿const quickStarts = ["駅名から探せる", "営業時間を確認", "週末の寄り道先を見る"];
 
 export function HeroSearchForm() {
   return (
@@ -8,7 +8,7 @@ export function HeroSearchForm() {
     >
       <div className="grid gap-3">
         <label className="text-sm font-semibold text-[color:var(--color-ink)]" htmlFor="home-station-search">
-          駅名・都道府県・住所から検索
+          駅名・地名・住所から検索
         </label>
         <div className="grid gap-3 md:grid-cols-[1fr_auto]">
           <input
@@ -16,7 +16,7 @@ export function HeroSearchForm() {
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base text-[color:var(--color-ink)] outline-none ring-0 transition placeholder:text-black/40 focus:border-[color:var(--color-sky-deep)] focus:shadow-[0_0_0_4px_rgba(41,95,143,0.12)]"
             id="home-station-search"
             name="q"
-            placeholder="駅名・都道府県・住所で検索"
+            placeholder="駅名・地名・住所で検索"
             type="search"
           />
           <button

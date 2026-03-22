@@ -1,4 +1,4 @@
-type StationDetailProps = {
+﻿type StationDetailProps = {
   station: {
     slug: string;
     name: string;
@@ -44,7 +44,7 @@ export function StationDetail({ station }: StationDetailProps) {
           <p>営業時間: {station.openingHours ?? "未確認"}</p>
           <p>定休日: {station.closingDays ?? "未確認"}</p>
           <p>信頼度: {formatConfidence(station.dataConfidence)}</p>
-          <p>参照ソース数: {station.sourceRecords.length}</p>
+          <p>ソース数: {station.sourceRecords.length}</p>
         </div>
       </div>
 

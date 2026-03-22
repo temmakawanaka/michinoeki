@@ -1,4 +1,4 @@
-import { GET } from "./route";
+﻿import { GET } from "./route";
 
 test("returns search results as json", async () => {
   const response = await GET(new Request("http://localhost:3000/api/search?q=富士&prefecture=静岡県"));

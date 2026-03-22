@@ -1,4 +1,4 @@
-export type StationCardProps = {
+﻿export type StationCardProps = {
   station: {
     slug: string;
     name: string;

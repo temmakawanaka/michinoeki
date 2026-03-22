@@ -52,9 +52,11 @@ test("homepage featured station links stay aligned with sample data and detail p
 
     expect(slugs.has(station.slug)).toBe(true);
     expect(getLinkByHref(href)).toHaveAttribute("href", href);
+    expect(screen.getByRole("heading", { name: station.name })).toBeInTheDocument();
 
     const stationRecord = await getStationBySlug(station.slug);
     expect(stationRecord?.slug).toBe(station.slug);
+    expect(stationRecord?.name).toBe(station.name);
   }
 });
 
@@ -77,8 +79,10 @@ test("homepage prefecture entry links stay aligned with sample data and search r
 
     expect(prefectures.has(entry.prefecture)).toBe(true);
     expect(getLinkByHref(href)).toHaveAttribute("href", href);
+    expect(screen.getAllByText(entry.prefecture).length).toBeGreaterThan(0);
 
     const result = await searchStations({ prefecture: entry.prefecture });
     expect(result.total).toBeGreaterThan(0);
   }
 });
+

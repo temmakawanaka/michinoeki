@@ -1,4 +1,4 @@
-import { searchStations } from "./search-stations";
+﻿import { searchStations } from "./search-stations";
 
 test("filters by keyword and prefecture", async () => {
   const result = await searchStations({ q: "富士", prefecture: "静岡県" });

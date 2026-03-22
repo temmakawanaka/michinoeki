@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+﻿import { render, screen } from "@testing-library/react";
 
 import { FeaturedStationsSection } from "./featured-stations-section";
 
@@ -7,13 +7,13 @@ test("shows featured station cards with practical details", () => {
     <FeaturedStationsSection
       items={[
         {
-          slug: "michinoeki-fujiyoshida",
-          name: "道の駅 富士吉田",
-          prefecture: "山梨県",
-          regionLabel: "富士山の玄関口",
-          highlight: "朝の富士山を眺めながら地元うどんでひと休み。",
-          detail: "富士山レーダードーム館や湧水スポットにも立ち寄りやすい週末向けの一駅です。",
-          tags: ["景色が気持ちいい", "朝ドライブ向き"],
+          slug: "michinoeki-fuji",
+          name: "道の駅 富士",
+          prefecture: "静岡県",
+          regionLabel: "富士川沿いでひと息つける実在スポット",
+          highlight: "海と富士山の気配を感じながら、移動の合間に立ち寄りやすい一駅です。",
+          detail: "営業時間や駐車場情報も確認できるので、東名周辺の休憩地点を探す入口として実用的に使えます。",
+          tags: ["実在ページへ移動できる", "静岡ドライブの途中向き"],
         },
       ]}
     />,
@@ -21,13 +21,10 @@ test("shows featured station cards with practical details", () => {
 
   expect(screen.getByText("おすすめ")).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: "今週のおすすめ道の駅" })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "道の駅 富士吉田" })).toBeInTheDocument();
-  expect(screen.getByText("山梨県")).toBeInTheDocument();
-  expect(screen.getByText("富士山の玄関口")).toBeInTheDocument();
-  expect(screen.getByText("朝の富士山を眺めながら地元うどんでひと休み。")).toBeInTheDocument();
-  expect(screen.getByText("景色が気持ちいい")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /道の駅 富士吉田/ })).toHaveAttribute(
-    "href",
-    "/stations/michinoeki-fujiyoshida",
-  );
+  expect(screen.getByRole("heading", { name: "道の駅 富士" })).toBeInTheDocument();
+  expect(screen.getByText("静岡県")).toBeInTheDocument();
+  expect(screen.getByText("富士川沿いでひと息つける実在スポット")).toBeInTheDocument();
+  expect(screen.getByText("海と富士山の気配を感じながら、移動の合間に立ち寄りやすい一駅です。")).toBeInTheDocument();
+  expect(screen.getByText("実在ページへ移動できる")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /道の駅 富士/ })).toHaveAttribute("href", "/stations/michinoeki-fuji");
 });
