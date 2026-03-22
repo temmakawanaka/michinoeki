@@ -6,87 +6,14 @@ import { render, screen } from "@testing-library/react";
 
 import HomePage from "@/app/page";
 import { featuredStations, prefectureEntries } from "@/lib/content/home-highlights";
-import { getStationBySlug } from "@/lib/stations/get-station-by-slug";
-import { searchStations } from "@/lib/stations/search-stations";
+
+process.env.DATABASE_URL ??= "postgresql://michinoeki:michinoeki@localhost:5432/michinoeki?schema=public";
 
 type SampleRecord = {
   slug?: string;
   prefecture?: string;
   prefecture_name?: string;
 };
-
-const featuredStationRecord = {
-  slug: "michinoeki-fuji",
-  name: "道の駅 富士",
-  prefecture: "静岡県",
-  address: "静岡県富士市",
-  openingHours: null,
-  closingDays: null,
-  websiteUrl: null,
-  dataConfidence: "high",
-  sourceRecords: [{ id: "source-record-1" }],
-  parking: {
-    regularCars: 52,
-    accessibleCars: null,
-    largeVehicles: null,
-  },
-  facilities: {
-    hasShop: true,
-    hasWifi: true,
-  },
-};
-
-const searchStationRecord = {
-  slug: "michinoeki-fuji",
-  name: "道の駅 富士",
-  prefecture: "静岡県",
-  address: "静岡県富士市",
-  openingHours: null,
-  closingDays: null,
-  websiteUrl: null,
-  dataConfidence: "high",
-  facilities: {
-    hasShop: true,
-    hasWifi: true,
-  },
-  parking: {
-    regularCars: 52,
-    accessibleCars: null,
-    largeVehicles: null,
-  },
-};
-
-const { findUniqueMock, findManyMock } = vi.hoisted(() => ({
-  findUniqueMock: vi.fn(async ({ where }: { where: { slug: string } }) => {
-    if (where.slug === featuredStationRecord.slug) {
-      return featuredStationRecord;
-    }
-
-    return null;
-  }),
-  findManyMock: vi.fn(async ({ where }: { where: { AND: Array<{ prefecture?: string }> } }) => {
-    const prefectureFilter = where.AND.find((clause) => clause.prefecture);
-
-    if (prefectureFilter?.prefecture === featuredStationRecord.prefecture) {
-      return [searchStationRecord];
-    }
-
-    return [];
-  }),
-}));
-
-vi.mock("@/lib/db", () => ({
-  prisma: {
-    station: {
-      findUnique: findUniqueMock,
-      findMany: findManyMock,
-    },
-  },
-}));
-
-beforeEach(() => {
-  vi.clearAllMocks();
-});
 
 function loadSampleRecords() {
   const sourceDir = path.join(process.cwd(), "data", "sources");
@@ -111,9 +38,10 @@ function getLinkByHref(href: string) {
   return link as HTMLElement;
 }
 
-test("homepage featured station links stay aligned with sample data and detail routing", async () => {
+test("homepage featured station links stay aligned with sample data and detail pages", async () => {
   const sampleRecords = loadSampleRecords();
   const slugs = new Set(sampleRecords.flatMap((record) => (record.slug ? [record.slug] : [])));
+  const { getStationBySlug } = await import("@/lib/stations/get-station-by-slug");
 
   await renderHomePage();
 
@@ -130,7 +58,7 @@ test("homepage featured station links stay aligned with sample data and detail r
   }
 });
 
-test("homepage prefecture entry links stay aligned with sample data and searchable paths", async () => {
+test("homepage prefecture entry links stay aligned with sample data and search results", async () => {
   const sampleRecords = loadSampleRecords();
   const prefectures = new Set(
     sampleRecords.flatMap((record) => {
@@ -138,6 +66,7 @@ test("homepage prefecture entry links stay aligned with sample data and searchab
       return prefecture ? [prefecture] : [];
     }),
   );
+  const { searchStations } = await import("@/lib/stations/search-stations");
 
   await renderHomePage();
 
