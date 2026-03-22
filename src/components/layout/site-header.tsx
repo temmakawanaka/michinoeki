@@ -11,7 +11,7 @@
           </div>
           <div>
             <p className="text-xs font-medium tracking-[0.28em] text-[color:var(--color-moss)]">全国の道の駅をめぐる入口</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[color:var(--color-ink)]">道の駅ガイド</h1>
+            <p className="mt-1 text-2xl font-semibold tracking-tight text-[color:var(--color-ink)]">道の駅ガイド</p>
           </div>
         </div>
         <p className="hidden text-sm text-[color:var(--color-ink)]/70 md:block">寄り道したくなる駅を、やさしく探せます。</p>

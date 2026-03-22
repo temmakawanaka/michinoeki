@@ -18,7 +18,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <p className="text-sm uppercase tracking-[0.24em] text-moss">検索結果</p>
         <h1 className="text-3xl font-semibold text-ink">{result.total}件の道の駅が見つかりました</h1>
         <p className="text-sm text-black/65">検索キーワード: {q || "すべての道の駅"}</p>
-        <PrefectureFilter selected={prefecture} />
+        <PrefectureFilter query={q} selected={prefecture} />
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {result.items.map((station) => (

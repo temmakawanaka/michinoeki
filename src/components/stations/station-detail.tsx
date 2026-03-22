@@ -1,4 +1,19 @@
-﻿type StationDetailProps = {
+﻿function formatConfidence(value?: string | null) {
+  if (value === "high") return "高";
+  if (value === "medium") return "中";
+  if (value === "low") return "低";
+
+  return "未確認";
+}
+
+function formatFacility(value?: boolean | null) {
+  if (value === true) return "あり";
+  if (value === false) return "なし";
+
+  return "未確認";
+}
+
+type StationDetailProps = {
   station: {
     slug: string;
     name: string;
@@ -24,14 +39,6 @@
     }>;
   };
 };
-
-function formatConfidence(value?: string | null) {
-  if (value === "high") return "高";
-  if (value === "medium") return "中";
-  if (value === "low") return "低";
-
-  return "未確認";
-}
 
 export function StationDetail({ station }: StationDetailProps) {
   return (
@@ -61,8 +68,8 @@ export function StationDetail({ station }: StationDetailProps) {
         <article className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-ink">設備</h2>
           <ul className="mt-3 grid gap-2 text-sm text-black/75">
-            <li>売店: {station.facilities?.hasShop ? "あり" : "なし"}</li>
-            <li>Wi-Fi: {station.facilities?.hasWifi ? "あり" : "なし"}</li>
+            <li>売店: {formatFacility(station.facilities?.hasShop)}</li>
+            <li>Wi-Fi: {formatFacility(station.facilities?.hasWifi)}</li>
           </ul>
         </article>
       </div>
