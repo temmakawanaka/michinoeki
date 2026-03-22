@@ -9,3 +9,9 @@ test("renders prefecture links that preserve the current query", () => {
   expect(screen.getByRole("link", { name: "静岡県" })).toHaveAttribute("href", "/search?q=%E5%AF%8C%E5%A3%AB&prefecture=%E9%9D%99%E5%B2%A1%E7%9C%8C");
   expect(screen.getByRole("link", { name: "静岡県" })).toHaveAttribute("aria-current", "page");
 });
+
+test("renders a clear filter link that keeps the current query", () => {
+  render(<PrefectureFilter selected="静岡県" query="富士" />);
+
+  expect(screen.getByRole("link", { name: "都道府県を解除" })).toHaveAttribute("href", "/search?q=%E5%AF%8C%E5%A3%AB");
+});

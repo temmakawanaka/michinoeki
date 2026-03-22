@@ -7,25 +7,42 @@ type PrefectureFilterProps = {
   query?: string;
 };
 
+function buildSearchHref(query?: string, prefecture?: string) {
+  const params = new URLSearchParams();
+
+  if (query) {
+    params.set("q", query);
+  }
+
+  if (prefecture) {
+    params.set("prefecture", prefecture);
+  }
+
+  const search = params.toString();
+  return search ? `/search?${search}` : "/search";
+}
+
 export function PrefectureFilter({ selected, query }: PrefectureFilterProps) {
   return (
     <div className="flex flex-wrap gap-2">
+      {selected ? (
+        <Link
+          className="rounded-full px-3 py-1 text-xs font-medium no-underline bg-[color:var(--color-paper)] text-[color:var(--color-ink)]"
+          href={buildSearchHref(query)}
+        >
+          都道府県を解除
+        </Link>
+      ) : null}
+
       {PREFECTURES.map((prefecture) => {
         const active = prefecture === selected;
-        const params = new URLSearchParams();
-
-        if (query) {
-          params.set("q", query);
-        }
-
-        params.set("prefecture", prefecture);
 
         return (
           <Link
             key={prefecture}
             aria-current={active ? "page" : undefined}
             className={`rounded-full px-3 py-1 text-xs font-medium no-underline ${active ? "bg-moss text-white" : "bg-black/5 text-black/70"}`}
-            href={`/search?${params.toString()}`}
+            href={buildSearchHref(query, prefecture)}
           >
             {prefecture}
           </Link>
