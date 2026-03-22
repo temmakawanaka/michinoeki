@@ -12,7 +12,6 @@ export function HeroSearchForm() {
         </label>
         <div className="grid gap-3 md:grid-cols-[1fr_auto]">
           <input
-            aria-label="道の駅検索"
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base text-[color:var(--color-ink)] outline-none ring-0 transition placeholder:text-black/40 focus:border-[color:var(--color-sky-deep)] focus:shadow-[0_0_0_4px_rgba(41,95,143,0.12)]"
             id="home-station-search"
             name="q"
