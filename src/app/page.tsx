@@ -5,7 +5,7 @@ import { PrefectureEntrySection } from "@/components/home/prefecture-entry-secti
 import { HeroSearchForm } from "@/components/search/hero-search-form";
 import { featuredEvents, featuredStations, prefectureEntries } from "@/lib/content/home-highlights";
 
-const heroHighlights = ["駅名からすぐ検索", "都道府県で見つける", "注目イベントも見る"];
+const heroHighlights = ["駅名からすぐ検索", "都道府県で見つける", "今週の話題も見る"];
 
 export default function HomePage() {
   return (
@@ -23,7 +23,7 @@ export default function HomePage() {
               ひとつの入口から探せる。
             </h1>
             <p className="mx-auto max-w-2xl text-base leading-8 text-[color:var(--color-ink-muted)] md:text-lg">
-              駅名、都道府県、住所から道の駅をすばやく検索しながら、今週のおすすめやイベントから旅のきっかけも見つけられます。
+              駅名、都道府県、住所から道の駅をすばやく検索しながら、今週のおすすめや話題から旅のきっかけも見つけられます。
             </p>
           </div>
 

@@ -15,6 +15,7 @@ export type FeaturedEvent = {
   dateLabel: string;
   summary: string;
   tags: string[];
+  href: string;
 };
 
 export type PrefectureEntry = {
@@ -37,28 +38,13 @@ export const featuredStations: FeaturedStation[] = [
 
 export const featuredEvents: FeaturedEvent[] = [
   {
-    title: "春のいちごフェア",
-    stationName: "道の駅 みのりの郷東金",
-    prefecture: "千葉県",
-    dateLabel: "3月下旬の週末",
-    summary: "直売所の朝採れいちごと限定スイーツを楽しめる、春らしい立ち寄りイベントです。",
-    tags: ["旬の味覚", "家族で立ち寄りたい"],
-  },
-  {
-    title: "夕景マルシェ",
-    stationName: "道の駅 夕陽が丘そとめ",
-    prefecture: "長崎県",
-    dateLabel: "毎週土曜の夕方",
-    summary: "海に沈む夕日を眺めながら、焼き菓子や海産物の小さなマルシェを楽しめます。",
-    tags: ["景色も主役", "夕方ドライブ向き"],
-  },
-  {
-    title: "山の恵み感謝市",
-    stationName: "道の駅 ななもり清見",
-    prefecture: "岐阜県",
-    dateLabel: "4月前半",
-    summary: "山菜や地元加工品が並び、春の飛騨らしい味と香りをまとめて味わえる企画です。",
-    tags: ["直売所が楽しい", "季節を感じる"],
+    title: "富士川寄り道プラン",
+    stationName: "道の駅 富士",
+    prefecture: "静岡県",
+    dateLabel: "今週のおすすめ",
+    summary: "海沿いドライブの途中で立ち寄りやすく、営業時間や設備もそのまま確認できる実在駅の話題です。",
+    tags: ["実在ページへ移動できる", "景色を楽しむ"],
+    href: "/stations/michinoeki-fuji",
   },
 ];
 

@@ -1,4 +1,6 @@
-﻿import type { FeaturedEvent } from "@/lib/content/home-highlights";
+﻿import Link from "next/link";
+
+import type { FeaturedEvent } from "@/lib/content/home-highlights";
 
 import { InfoChip } from "../ui/info-chip";
 import { SectionHeading } from "../ui/section-heading";
@@ -9,11 +11,11 @@ type FeaturedEventsSectionProps = {
 
 export function FeaturedEventsSection({ items }: FeaturedEventsSectionProps) {
   return (
-    <section aria-label="注目イベント" className="grid gap-6">
+    <section aria-label="今週の話題" className="grid gap-6">
       <SectionHeading
-        eyebrow="イベント"
-        title="注目イベント"
-        description="いま立ち寄りたくなる話題を並べて、道の駅を探す楽しさを少し広げます。"
+        eyebrow="話題"
+        title="今週の話題"
+        description="まずは実際に見に行ける駅の話題から並べて、旅のきっかけをやさしく増やします。"
       />
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -41,6 +43,13 @@ export function FeaturedEventsSection({ items }: FeaturedEventsSectionProps) {
                 <InfoChip key={tag} label="話題" value={tag} />
               ))}
             </div>
+
+            <Link
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-sky-deep)] px-4 py-2 text-sm font-semibold text-white no-underline transition hover:bg-[color:var(--color-ink)]"
+              href={item.href}
+            >
+              駅の詳細を見る
+            </Link>
           </article>
         ))}
       </div>

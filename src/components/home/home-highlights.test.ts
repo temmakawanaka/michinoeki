@@ -5,7 +5,7 @@ import { act, createElement } from "react";
 import { render, screen } from "@testing-library/react";
 
 import HomePage from "@/app/page";
-import { featuredStations, prefectureEntries } from "@/lib/content/home-highlights";
+import { featuredEvents, featuredStations, prefectureEntries } from "@/lib/content/home-highlights";
 
 process.env.DATABASE_URL ??= "postgresql://michinoeki:michinoeki@localhost:5432/michinoeki?schema=public";
 
@@ -60,6 +60,24 @@ test("homepage featured station links stay aligned with sample data and detail p
   }
 });
 
+test("homepage featured topic links lead to usable in-app destinations", async () => {
+  const sampleRecords = loadSampleRecords();
+  const slugs = new Set(sampleRecords.flatMap((record) => (record.slug ? [record.slug] : [])));
+
+  await renderHomePage();
+
+  expect(featuredEvents.length).toBeGreaterThan(0);
+
+  for (const item of featuredEvents) {
+    expect(getLinkByHref(item.href)).toHaveAttribute("href", item.href);
+    expect(screen.getAllByText(item.stationName).length).toBeGreaterThan(0);
+
+    if (item.href.startsWith("/stations/")) {
+      expect(slugs.has(item.href.replace("/stations/", ""))).toBe(true);
+    }
+  }
+});
+
 test("homepage prefecture entry links stay aligned with sample data and search results", async () => {
   const sampleRecords = loadSampleRecords();
   const prefectures = new Set(
@@ -85,4 +103,3 @@ test("homepage prefecture entry links stay aligned with sample data and search r
     expect(result.total).toBeGreaterThan(0);
   }
 });
-
