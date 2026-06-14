@@ -1,47 +1,55 @@
 # michinoeki
 
-道の駅の基本情報を横断検索できる MVP です。現在は `Next.js + PostgreSQL + Prisma` を使って、全国版ディレクトリの土台を作っています。
+道の駅データを扱うバックエンド API です。まずは GET のみで動く小さな Node.js サーバーとして整理しています。
 
-## 開発環境
+## 構成
 
-1. Docker Desktop を起動する
-2. 環境変数を `.env` に設定する
-3. Postgres を立ち上げてスキーマを反映する
-4. サンプルデータを取り込む
+- `src/server.ts`: HTTP サーバーの起動
+- `src/http/app.ts`: API ルーティング
+- `src/lib/stations`: 道の駅検索・詳細取得のロジック
+- `src/lib/importers`: 複数ソースの取り込み・正規化ロジック
+- `prisma/schema.prisma`: PostgreSQL 用の Prisma スキーマ
+- `data/sources`: 取り込み動作用のサンプルデータ
+
+## セットアップ
 
 ```bash
+npm install
+cp .env.example .env
 npm run db:up
-npm run db:migrate -- --name init_station_master
+npm run db:migrate
 npm run db:seed
 ```
 
-## データ取り込み方針
-
-- 国土交通省、都道府県、道の駅公式サイトを一次ソースとして優先します
-- 民間の集約サイトは補助ソースとして扱います
-- 各ソースのデータを正規化してから比較し、項目ごとに採用値を決めます
-- 一次ソースがある値を優先しつつ、信頼度が十分な複数ソースの一致がある場合はそちらを採用できます
-- 採用後も `StationSourceRecord` に生データと抽出値を残し、判断根拠を追えるようにします
-
-## サンプル取り込み
+## 起動
 
 ```bash
-npx tsx scripts/import-stations.ts data/sources/sample-source-a.json data/sources/sample-source-b.json data/sources/sample-source-c.json
+npm run dev
 ```
 
-このサンプルでは `mlit` と 2 つの集約ソースを比較し、`Station` と `StationSourceRecord` に保存します。
+既定では `http://localhost:3000` で起動します。ポートを変える場合は `PORT` を指定します。
 
-## 動作確認
+```bash
+PORT=4000 npm run dev
+```
+
+## GET API
+
+- `GET /api/health`
+- `GET /api/stations?q=富士&prefecture=静岡県`
+- `GET /api/stations/:stationSlug`
+- `GET /api/prefectures`
+- `GET /api/search?q=富士` は旧 API 互換用です。
+
+## データ取り込み
+
+```bash
+npm run import:stations -- data/sources/sample-source-a.json data/sources/sample-source-b.json data/sources/sample-source-c.json
+```
+
+## 確認
 
 ```bash
 npm test
-npm run lint
-npm run test:e2e
-npm run build
+npm run typecheck
 ```
-
-ローカルでの確認ポイントは次のとおりです。
-
-- トップページから駅名、都道府県、住所のキーワードで検索できる
-- 検索結果から詳細ページへ遷移できる
-- 詳細ページで営業時間、定休日、信頼度、ソース件数を確認できる

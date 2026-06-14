@@ -103,7 +103,6 @@ function resolveConfidence<T>(group: CandidateGroup<T>): ConfidenceLevel {
   return "low";
 }
 
-// eslint-disable-next-line no-unused-vars
 function pickField<T>(records: NormalizedStationRecord[], selector: (record: NormalizedStationRecord) => T | null): MergedField<T> {
   const candidates: Candidate<T>[] = [];
 
