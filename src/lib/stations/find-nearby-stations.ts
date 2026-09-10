@@ -54,7 +54,7 @@ export async function findNearbyStations(input: NearbyStationQueryInput) {
     },
   });
 
-  const items = stations
+  const matchedItems = stations
     .flatMap((station) => {
       if (station.latitude == null || station.longitude == null) {
         return [];
@@ -78,8 +78,7 @@ export async function findNearbyStations(input: NearbyStationQueryInput) {
         },
       ];
     })
-    .sort((a, b) => a.distanceKm - b.distanceKm)
-    .slice(0, query.limit);
+    .sort((a, b) => a.distanceKm - b.distanceKm);
 
   return {
     origin: {
@@ -87,7 +86,7 @@ export async function findNearbyStations(input: NearbyStationQueryInput) {
       longitude: query.lng,
     },
     radiusKm: query.radiusKm,
-    total: items.length,
-    items,
+    total: matchedItems.length,
+    items: matchedItems.slice(0, query.limit),
   };
 }
