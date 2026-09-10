@@ -1,4 +1,10 @@
-import type { ParkingCapacity, Station, StationFacilities, StationSourceRecord } from "@prisma/client";
+import type {
+  ParkingCapacity,
+  Station,
+  StationFacilities,
+  StationSourceRecord,
+  StationSpecialty,
+} from "@prisma/client";
 
 type StationWithRelations = Station & {
   facilities: StationFacilities | null;
@@ -7,6 +13,7 @@ type StationWithRelations = Station & {
 
 type StationDetailWithRelations = StationWithRelations & {
   sourceRecords: StationSourceRecord[];
+  specialties: StationSpecialty[];
 };
 
 export function mapStationSummary(station: StationWithRelations) {
@@ -24,6 +31,24 @@ export function mapStationSummary(station: StationWithRelations) {
   };
 }
 
+export function mapStationSpecialty(specialty: StationSpecialty) {
+  return {
+    id: specialty.id,
+    name: specialty.name,
+    description: specialty.description,
+    category: specialty.category,
+    imageUrl: specialty.imageUrl,
+    priceLabel: specialty.priceLabel,
+    salesPlace: specialty.salesPlace,
+    season: specialty.season,
+    officialUrl: specialty.officialUrl,
+    sourceName: specialty.sourceName,
+    sourceUrl: specialty.sourceUrl,
+    trustScore: specialty.trustScore,
+    observedAt: specialty.observedAt.toISOString(),
+  };
+}
+
 export function mapStationDetail(station: StationDetailWithRelations) {
   return {
     ...mapStationSummary(station),
@@ -36,6 +61,7 @@ export function mapStationDetail(station: StationDetailWithRelations) {
           largeVehicles: station.parking.largeVehicles,
         }
       : null,
+    specialties: station.specialties.map(mapStationSpecialty),
     sourceRecords: station.sourceRecords.map((sourceRecord) => ({
       sourceName: sourceRecord.sourceName,
       sourceType: sourceRecord.sourceType,
