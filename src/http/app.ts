@@ -5,6 +5,7 @@ import { getStationBySlug } from "@/lib/stations/get-station-by-slug";
 import { listStationPrefectures } from "@/lib/stations/list-station-prefectures";
 import { mapStationDetail } from "@/lib/stations/station-mappers";
 import { searchEvents } from "@/lib/stations/search-events";
+import { searchSpecialties } from "@/lib/stations/search-specialties";
 import { stationQuerySchema } from "@/lib/stations/station-query-schema";
 import { searchStations } from "@/lib/stations/search-stations";
 
@@ -67,6 +68,16 @@ async function handleEventSearch(url: URL) {
   );
 }
 
+async function handleSpecialtySearch(url: URL) {
+  return jsonResponse(
+    await searchSpecialties({
+      q: url.searchParams.get("q") ?? "",
+      category: url.searchParams.get("category") ?? undefined,
+      stationSlug: url.searchParams.get("stationSlug") ?? undefined,
+    }),
+  );
+}
+
 async function handleStationDetail(stationSlug: string) {
   const station = await getStationBySlug(stationSlug);
 
@@ -120,6 +131,10 @@ export async function handleApiRequest(request: Request): Promise<Response> {
 
     if (path === "/api/events") {
       return handleEventSearch(url);
+    }
+
+    if (path === "/api/specialties") {
+      return handleSpecialtySearch(url);
     }
 
     if (path === "/api/prefectures") {
