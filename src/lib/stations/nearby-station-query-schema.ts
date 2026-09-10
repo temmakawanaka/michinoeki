@@ -8,3 +8,4 @@ export const nearbyStationQuerySchema = z.object({
 });
 
 export type NearbyStationQuery = z.infer<typeof nearbyStationQuerySchema>;
+export type NearbyStationQueryInput = z.input<typeof nearbyStationQuerySchema>;
