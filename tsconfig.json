@@ -17,6 +17,6 @@
     },
     "types": ["node", "vitest/globals"]
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "prisma/**/*.ts"],
+  "exclude": ["node_modules", "web"]
 }
