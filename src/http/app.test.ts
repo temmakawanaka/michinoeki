@@ -111,6 +111,7 @@ test("GET /api/stations/:slug returns a station detail", async () => {
       hasShop: true,
       hasWifi: true,
     },
+    events: [],
     sourceRecords: [
       {
         id: "source-1",
@@ -135,6 +136,7 @@ test("GET /api/stations/:slug returns a station detail", async () => {
     parking: {
       regularCars: 52,
     },
+    events: [],
     sourceRecords: [
       {
         sourceName: "mlit",
