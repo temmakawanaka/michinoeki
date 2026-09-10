@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db";
 
 export async function getStationBySlug(slug: string) {
   return prisma.station.findUnique({
@@ -7,6 +7,9 @@ export async function getStationBySlug(slug: string) {
       facilities: true,
       parking: true,
       sourceRecords: true,
+      events: {
+        orderBy: [{ priority: "desc" }, { startsAt: "asc" }, { observedAt: "desc" }],
+      },
     },
   });
 }
