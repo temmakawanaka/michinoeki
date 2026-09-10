@@ -92,12 +92,8 @@ async function handleStationDetail(stationSlug: string) {
 
   if (!station) {
     return jsonResponse(
-      {
-        error: "Station not found",
-      },
-      {
-        status: 404,
-      },
+      { error: "Station not found" },
+      { status: 404 },
     );
   }
 
@@ -114,14 +110,10 @@ export async function handleApiRequest(request: Request): Promise<Response> {
 
   if (request.method !== "GET") {
     return jsonResponse(
-      {
-        error: "Method not allowed",
-      },
+      { error: "Method not allowed" },
       {
         status: 405,
-        headers: {
-          allow: "GET, OPTIONS",
-        },
+        headers: { allow: "GET" },
       },
     );
   }
@@ -132,9 +124,7 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     const segments = pathSegments(path);
 
     if (path === "/api/health") {
-      return jsonResponse({
-        status: "ok",
-      });
+      return jsonResponse({ status: "ok" });
     }
 
     if (path === "/api/stations" || path === "/api/search") {
@@ -154,45 +144,23 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     }
 
     if (path === "/api/prefectures") {
-      return jsonResponse({
-        items: await listStationPrefectures(),
-      });
+      return jsonResponse({ items: await listStationPrefectures() });
     }
 
     if (segments.length === 3 && segments[0] === "api" && segments[1] === "stations") {
       return handleStationDetail(segments[2]);
     }
 
-    return jsonResponse(
-      {
-        error: "Not found",
-      },
-      {
-        status: 404,
-      },
-    );
+    return jsonResponse({ error: "Not found" }, { status: 404 });
   } catch (error) {
     if (error instanceof ZodError) {
       return jsonResponse(
-        {
-          error: "Invalid query",
-          issues: error.issues,
-        },
-        {
-          status: 400,
-        },
+        { error: "Invalid query", issues: error.issues },
+        { status: 400 },
       );
     }
 
     console.error(error);
-
-    return jsonResponse(
-      {
-        error: "Internal server error",
-      },
-      {
-        status: 500,
-      },
-    );
+    return jsonResponse({ error: "Internal server error" }, { status: 500 });
   }
 }
