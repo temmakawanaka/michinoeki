@@ -45,10 +45,11 @@ type StationDetail = StationSummary & {
 };
 
 const FAVORITES_KEY = "michinoeki:favorites:v1";
+const VISITED_KEY = "michinoeki:visited:v1";
 
-function loadFavorites() {
+function loadSlugList(key: string) {
   try {
-    const value = localStorage.getItem(FAVORITES_KEY);
+    const value = localStorage.getItem(key);
     const parsed = value ? JSON.parse(value) : [];
     return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
   } catch {
@@ -60,8 +61,10 @@ const query = ref("");
 const loading = ref(false);
 const locationMessage = ref("");
 const selected = ref<StationDetail | null>(null);
-const savedSlugs = ref<string[]>(loadFavorites());
+const savedSlugs = ref<string[]>(loadSlugList(FAVORITES_KEY));
+const visitedSlugs = ref<string[]>(loadSlugList(VISITED_KEY));
 const savedOnly = ref(false);
+const visitedOnly = ref(false);
 
 const demoStations: StationDetail[] = [
   {
@@ -124,6 +127,7 @@ const filteredStations = computed(() => {
   const q = query.value.trim().toLowerCase();
   return stations.value.filter((station) => {
     if (savedOnly.value && !savedSlugs.value.includes(station.slug)) return false;
+    if (visitedOnly.value && !visitedSlugs.value.includes(station.slug)) return false;
     if (!q) return true;
     return [
       station.name,
@@ -148,21 +152,46 @@ function isSaved(slug: string) {
   return savedSlugs.value.includes(slug);
 }
 
-function persistFavorites() {
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify(savedSlugs.value));
+function isVisited(slug: string) {
+  return visitedSlugs.value.includes(slug);
+}
+
+function persistList(key: string, slugs: string[]) {
+  localStorage.setItem(key, JSON.stringify(slugs));
 }
 
 function toggleSaved(station: StationDetail) {
   savedSlugs.value = isSaved(station.slug)
     ? savedSlugs.value.filter((slug) => slug !== station.slug)
     : [...savedSlugs.value, station.slug];
-  persistFavorites();
+  persistList(FAVORITES_KEY, savedSlugs.value);
+}
+
+function toggleVisited(station: StationDetail) {
+  visitedSlugs.value = isVisited(station.slug)
+    ? visitedSlugs.value.filter((slug) => slug !== station.slug)
+    : [...visitedSlugs.value, station.slug];
+  persistList(VISITED_KEY, visitedSlugs.value);
 }
 
 function toggleSavedOnly() {
   selected.value = null;
   savedOnly.value = !savedOnly.value;
+  visitedOnly.value = false;
   query.value = "";
+}
+
+function toggleVisitedOnly() {
+  selected.value = null;
+  visitedOnly.value = !visitedOnly.value;
+  savedOnly.value = false;
+  query.value = "";
+}
+
+function resetFilters() {
+  selected.value = null;
+  savedOnly.value = false;
+  visitedOnly.value = false;
 }
 
 function mapSearchUrl(station: StationDetail) {
@@ -175,6 +204,7 @@ function mapEmbedUrl(station: StationDetail) {
 
 function searchByKeyword(keyword: string) {
   savedOnly.value = false;
+  visitedOnly.value = false;
   query.value = keyword;
   document.querySelector(".content-section")?.scrollIntoView({ behavior: "smooth" });
 }
@@ -183,6 +213,7 @@ async function searchStations() {
   loading.value = true;
   selected.value = null;
   savedOnly.value = false;
+  visitedOnly.value = false;
   try {
     const response = await fetch(`/api/stations?q=${encodeURIComponent(query.value)}`);
     if (!response.ok) throw new Error("API unavailable");
@@ -216,6 +247,7 @@ async function openStation(station: StationDetail) {
 function findNearby() {
   locationMessage.value = "";
   savedOnly.value = false;
+  visitedOnly.value = false;
   if (!navigator.geolocation) {
     locationMessage.value = "この端末では位置情報を利用できません。";
     return;
@@ -246,29 +278,34 @@ function findNearby() {
 <template>
   <div class="app-shell">
     <header class="site-header">
-      <button class="brand" @click="selected = null; savedOnly = false" aria-label="トップへ戻る">
+      <button class="brand" @click="resetFilters" aria-label="トップへ戻る">
         <span class="brand-mark">道</span>
         <span><strong>よりみち道の駅</strong><small>旅先の「ちょっと寄りたい」を見つける</small></span>
       </button>
-      <button class="saved-button" :class="{ active: savedOnly }" aria-label="行きたいリスト" @click="toggleSavedOnly">
-        {{ savedOnly ? '♥' : '♡' }} <span>行きたい</span><b v-if="savedSlugs.length">{{ savedSlugs.length }}</b>
-      </button>
+      <div class="header-actions">
+        <button class="saved-button" :class="{ active: savedOnly }" aria-label="行きたいリスト" @click="toggleSavedOnly">
+          {{ savedOnly ? '♥' : '♡' }} <span>行きたい</span><b v-if="savedSlugs.length">{{ savedSlugs.length }}</b>
+        </button>
+        <button class="saved-button visited-button" :class="{ active: visitedOnly }" aria-label="訪問済みリスト" @click="toggleVisitedOnly">
+          ✓ <span>訪問済み</span><b v-if="visitedSlugs.length">{{ visitedSlugs.length }}</b>
+        </button>
+      </div>
     </header>
 
     <main v-if="!selected">
       <section class="hero">
         <p class="eyebrow">MICHINOEKI GUIDE</p>
-        <h1>{{ savedOnly ? '行きたい道の駅を、\n次の旅へ。' : '次の休憩を、\n旅の楽しみに。' }}</h1>
-        <p class="hero-copy">{{ savedOnly ? '気になった道の駅はこの端末に保存されます。次のドライブ候補をここから見返せます。' : '基本情報だけでなく、名物・特産品・イベントまで。道の駅を起点に、その土地らしさを探せるガイドです。' }}</p>
-        <form v-if="!savedOnly" class="search-box" @submit.prevent="searchStations">
+        <h1>{{ savedOnly ? '行きたい道の駅を、\n次の旅へ。' : visitedOnly ? '立ち寄った道の駅を、\n旅の記録に。' : '次の休憩を、\n旅の楽しみに。' }}</h1>
+        <p class="hero-copy">{{ savedOnly ? '気になった道の駅はこの端末に保存されます。次のドライブ候補をここから見返せます。' : visitedOnly ? '訪問済みにした道の駅をこの端末に記録します。これまでのよりみちを振り返れます。' : '基本情報だけでなく、名物・特産品・イベントまで。道の駅を起点に、その土地らしさを探せるガイドです。' }}</p>
+        <form v-if="!savedOnly && !visitedOnly" class="search-box" @submit.prevent="searchStations">
           <input v-model="query" placeholder="道の駅・地域・名物・イベントから探す" aria-label="検索キーワード" />
           <button type="submit">探す</button>
         </form>
-        <button v-if="!savedOnly" class="nearby-button" @click="findNearby">◎ 現在地から近い道の駅を探す</button>
-        <p v-if="locationMessage && !savedOnly" class="status-message">{{ locationMessage }}</p>
+        <button v-if="!savedOnly && !visitedOnly" class="nearby-button" @click="findNearby">◎ 現在地から近い道の駅を探す</button>
+        <p v-if="locationMessage && !savedOnly && !visitedOnly" class="status-message">{{ locationMessage }}</p>
       </section>
 
-      <section v-if="!savedOnly" class="quick-links" aria-label="目的から探す">
+      <section v-if="!savedOnly && !visitedOnly" class="quick-links" aria-label="目的から探す">
         <button @click="searchByKeyword('海鮮')">海鮮</button>
         <button @click="searchByKeyword('お茶')">お茶</button>
         <button @click="searchByKeyword('野菜')">産直</button>
@@ -276,7 +313,7 @@ function findNearby() {
         <button @click="searchByKeyword('イベント')">イベント</button>
       </section>
 
-      <section v-if="!savedOnly" class="content-section event-feature-section">
+      <section v-if="!savedOnly && !visitedOnly" class="content-section event-feature-section">
         <div class="section-heading">
           <div><p class="eyebrow">WHAT'S ON</p><h2>今週末・近日のよりみち</h2></div>
           <span class="demo-label">デモ表示</span>
@@ -297,13 +334,16 @@ function findNearby() {
 
       <section class="content-section">
         <div class="section-heading">
-          <div><p class="eyebrow">{{ savedOnly ? 'SAVED' : 'DISCOVER' }}</p><h2>{{ savedOnly ? '行きたい道の駅' : query ? `「${query}」の候補` : 'まず寄ってみたい道の駅' }}</h2></div>
+          <div><p class="eyebrow">{{ savedOnly ? 'SAVED' : visitedOnly ? 'VISITED' : 'DISCOVER' }}</p><h2>{{ savedOnly ? '行きたい道の駅' : visitedOnly ? '訪問済みの道の駅' : query ? `「${query}」の候補` : 'まず寄ってみたい道の駅' }}</h2></div>
           <span>{{ filteredStations.length }}件</span>
         </div>
 
         <div v-if="loading" class="loading">情報を読み込んでいます…</div>
         <div v-else-if="savedOnly && filteredStations.length === 0" class="empty-state saved-empty">
           まだ「行きたい」道の駅はありません。気になる道の駅の詳細で♡を押すと、ここに保存できます。
+        </div>
+        <div v-else-if="visitedOnly && filteredStations.length === 0" class="empty-state saved-empty">
+          まだ訪問済みの道の駅はありません。立ち寄った道の駅の詳細で「訪問済みにする」を押すと、ここに記録できます。
         </div>
         <div v-else class="station-list">
           <article v-for="station in filteredStations" :key="station.slug" class="station-card" @click="openStation(station)">
@@ -320,6 +360,7 @@ function findNearby() {
                 <span v-if="station.hasShop">直売所</span>
                 <span v-if="station.hasWifi">Wi‑Fi</span>
                 <span v-if="isSaved(station.slug)" class="saved-tag">♥ 行きたい</span>
+                <span v-if="isVisited(station.slug)" class="visited-tag">✓ 訪問済み</span>
               </div>
               <div v-if="station.specialties?.length" class="specialty-preview">おすすめ：{{ station.specialties.slice(0, 2).map((s) => s.name).join('・') }}</div>
             </div>
@@ -339,6 +380,7 @@ function findNearby() {
           <a v-if="selected.websiteUrl" :href="selected.websiteUrl" target="_blank" rel="noreferrer">公式サイト ↗</a>
           <a :href="mapSearchUrl(selected)" target="_blank" rel="noreferrer" class="secondary-action">地図を開く ↗</a>
           <button :class="{ saved: isSaved(selected.slug) }" @click="toggleSaved(selected)">{{ isSaved(selected.slug) ? '♥ 行きたいに保存済み' : '♡ 行きたい' }}</button>
+          <button :class="{ visited: isVisited(selected.slug) }" @click="toggleVisited(selected)">{{ isVisited(selected.slug) ? '✓ 訪問済み' : '○ 訪問済みにする' }}</button>
         </div>
       </section>
 
@@ -398,7 +440,7 @@ function findNearby() {
 
       <section class="content-section detail-section notice-section">
         <p class="eyebrow">NEXT</p><h2>旅先で役立つ情報をもっと</h2>
-        <p>次は、公式イベントの自動取得、口コミ、混雑感、訪問記録をこの詳細ページに追加していきます。</p>
+        <p>次は、口コミ、混雑感、訪問日メモなど、旅の記録をさらに充実させていきます。</p>
       </section>
     </main>
 

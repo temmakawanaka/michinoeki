@@ -1,0 +1,27 @@
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tags .visited-tag {
+  background: #dfe9e1;
+  color: #31543d;
+  font-weight: 700;
+}
+
+.detail-actions button.visited {
+  background: #31543d;
+  border-color: #31543d;
+  color: #fff;
+}
+
+@media (max-width: 700px) {
+  .header-actions {
+    gap: 5px;
+  }
+
+  .header-actions .saved-button {
+    padding: 8px 9px;
+  }
+}
