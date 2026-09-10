@@ -38,8 +38,27 @@ PORT=4000 npm run dev
 - `GET /api/health`
 - `GET /api/stations?q=富士&prefecture=静岡県`
 - `GET /api/stations/:stationSlug`
+- `GET /api/specialties?q=しらす&category=グルメ`
+- `GET /api/specialties?stationSlug=michinoeki-fuji`
 - `GET /api/prefectures`
 - `GET /api/search?q=富士` は旧 API 互換用です。
+
+### 特産品・名物・グルメ
+
+道の駅詳細の `specialties` には、次のような情報を返します。
+
+- 名称 / 説明
+- カテゴリ（例: `特産品`, `グルメ`）
+- 画像 URL
+- 価格表示
+- 販売場所
+- 季節性
+- 公式 URL
+- 情報源 URL / 確認日時 / 信頼度
+
+`GET /api/specialties` を使うと、駅をまたいで名称・説明・カテゴリ・販売場所を横断検索できます。
+
+価格、販売時期、売り切れなどは変動しやすいため、フロントエンドでは `sourceUrl`、`observedAt`、`trustScore` とあわせて表示する想定です。
 
 ## データ取り込み
 
