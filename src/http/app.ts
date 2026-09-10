@@ -4,6 +4,7 @@ import { findNearbyStations } from "@/lib/stations/find-nearby-stations";
 import { getStationBySlug } from "@/lib/stations/get-station-by-slug";
 import { listStationPrefectures } from "@/lib/stations/list-station-prefectures";
 import { mapStationDetail } from "@/lib/stations/station-mappers";
+import { searchEvents } from "@/lib/stations/search-events";
 import { stationQuerySchema } from "@/lib/stations/station-query-schema";
 import { searchStations } from "@/lib/stations/search-stations";
 
@@ -48,6 +49,19 @@ async function handleNearbyStationSearch(url: URL) {
       lat: url.searchParams.get("lat"),
       lng: url.searchParams.get("lng"),
       radiusKm: url.searchParams.get("radiusKm") ?? undefined,
+      limit: url.searchParams.get("limit") ?? undefined,
+    }),
+  );
+}
+
+async function handleEventSearch(url: URL) {
+  return jsonResponse(
+    await searchEvents({
+      q: url.searchParams.get("q") ?? "",
+      type: url.searchParams.get("type") ?? undefined,
+      stationSlug: url.searchParams.get("stationSlug") ?? undefined,
+      from: url.searchParams.get("from") ?? undefined,
+      to: url.searchParams.get("to") ?? undefined,
       limit: url.searchParams.get("limit") ?? undefined,
     }),
   );
@@ -102,6 +116,10 @@ export async function handleApiRequest(request: Request): Promise<Response> {
 
     if (path === "/api/stations/nearby") {
       return handleNearbyStationSearch(url);
+    }
+
+    if (path === "/api/events") {
+      return handleEventSearch(url);
     }
 
     if (path === "/api/prefectures") {
