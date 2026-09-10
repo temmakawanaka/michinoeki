@@ -11,6 +11,7 @@ type StationSummary = {
   websiteUrl?: string | null;
   hasShop?: boolean;
   hasWifi?: boolean;
+  distanceKm?: number | null;
 };
 
 type Specialty = {
@@ -24,11 +25,23 @@ type Specialty = {
   officialUrl?: string | null;
 };
 
+type StationEvent = {
+  id: string;
+  title: string;
+  summary: string;
+  dateLabel: string;
+  category: string;
+  important?: boolean;
+  isDemo?: boolean;
+  officialUrl?: string | null;
+};
+
 type StationDetail = StationSummary & {
   latitude?: number | null;
   longitude?: number | null;
   parking?: { regularCars?: number | null; accessibleCars?: number | null; largeVehicles?: number | null } | null;
   specialties?: Specialty[];
+  events?: StationEvent[];
 };
 
 const query = ref("");
@@ -52,6 +65,9 @@ const demoStations: StationDetail[] = [
       { name: "しらす丼", category: "グルメ", description: "駿河湾のしらすを気軽に味わえる、ご当地らしい一品。", priceLabel: "価格は現地で確認", locationLabel: "食事処" },
       { name: "静岡茶", category: "特産品", description: "旅のお土産にも選びやすい静岡の定番。", seasonLabel: "通年", locationLabel: "売店" },
     ],
+    events: [
+      { id: "fuji-autumn", title: "秋の味覚フェア", summary: "旬の農産物や地域の味を楽しむイベント表示のサンプルです。", dateLabel: "9月12日〜13日", category: "フェア", isDemo: true },
+    ],
   },
   {
     slug: "kakegawa",
@@ -65,6 +81,9 @@ const demoStations: StationDetail[] = [
     specialties: [
       { name: "深蒸し茶", category: "特産品", description: "掛川らしいお茶を探したい人向け。", locationLabel: "直売所" },
       { name: "地元野菜", category: "農産物", description: "季節ごとの旬を見つける楽しさがあります。", seasonLabel: "季節により変動" },
+    ],
+    events: [
+      { id: "kakegawa-harvest", title: "朝採れ野菜マルシェ", summary: "生産者から届く旬の野菜を紹介するイベント表示のサンプルです。", dateLabel: "9月19日", category: "マルシェ", isDemo: true },
     ],
   },
   {
@@ -80,6 +99,9 @@ const demoStations: StationDetail[] = [
       { name: "しらす", category: "海鮮", description: "浜名湖・遠州エリアらしい海の味覚。", locationLabel: "売店・食事処" },
       { name: "足湯", category: "体験", description: "ドライブ休憩に立ち寄りやすい人気ポイント。" },
     ],
+    events: [
+      { id: "shiomizaka-sea", title: "海の恵み特集", summary: "地域の海産物をピックアップする企画表示のサンプルです。", dateLabel: "9月下旬", category: "特集", isDemo: true },
+    ],
   },
 ];
 
@@ -88,12 +110,37 @@ const filteredStations = computed(() => {
   const q = query.value.trim().toLowerCase();
   if (!q) return stations.value;
   return stations.value.filter((station) =>
-    [station.name, station.prefecture, station.address, ...(station.specialties ?? []).map((item) => item.name)]
+    [
+      station.name,
+      station.prefecture,
+      station.address,
+      ...(station.specialties ?? []).map((item) => item.name),
+      ...(station.events ?? []).map((event) => event.title),
+    ]
       .join(" ")
       .toLowerCase()
       .includes(q),
   );
 });
+
+const featuredEvents = computed(() =>
+  demoStations
+    .flatMap((station) => (station.events ?? []).map((event) => ({ station, event })))
+    .slice(0, 3),
+);
+
+function mapSearchUrl(station: StationDetail) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${station.name} ${station.address}`)}`;
+}
+
+function mapEmbedUrl(station: StationDetail) {
+  return `https://www.google.com/maps?q=${encodeURIComponent(`${station.name} ${station.address}`)}&output=embed`;
+}
+
+function searchByKeyword(keyword: string) {
+  query.value = keyword;
+  document.querySelector(".content-section")?.scrollIntoView({ behavior: "smooth" });
+}
 
 async function searchStations() {
   loading.value = true;
@@ -116,7 +163,13 @@ async function openStation(station: StationDetail) {
   try {
     const response = await fetch(`/api/stations/${encodeURIComponent(station.slug)}`);
     if (!response.ok) return;
-    selected.value = (await response.json()) as StationDetail;
+    const detail = (await response.json()) as StationDetail;
+    selected.value = {
+      ...station,
+      ...detail,
+      specialties: detail.specialties?.length ? detail.specialties : station.specialties,
+      events: detail.events?.length ? detail.events : station.events,
+    };
   } catch {
     // デモ表示を継続する。
   }
@@ -138,7 +191,7 @@ function findNearby() {
         if (data.items?.length) stations.value = data.items;
         locationMessage.value = data.items?.length ? "現在地に近い順で表示しています。" : "50km以内の道の駅が見つかりませんでした。";
       } catch {
-        locationMessage.value = "位置情報は取得できました。近隣検索APIをマージ後、このまま距離順表示に切り替わります。";
+        locationMessage.value = "位置情報は取得できました。公開版API接続後、このまま距離順表示に切り替わります。";
       } finally {
         loading.value = false;
       }
@@ -167,7 +220,7 @@ function findNearby() {
         <h1>次の休憩を、<br />旅の楽しみに。</h1>
         <p class="hero-copy">基本情報だけでなく、名物・特産品・イベントまで。道の駅を起点に、その土地らしさを探せるガイドです。</p>
         <form class="search-box" @submit.prevent="searchStations">
-          <input v-model="query" placeholder="道の駅・地域・名物から探す" aria-label="検索キーワード" />
+          <input v-model="query" placeholder="道の駅・地域・名物・イベントから探す" aria-label="検索キーワード" />
           <button type="submit">探す</button>
         </form>
         <button class="nearby-button" @click="findNearby">◎ 現在地から近い道の駅を探す</button>
@@ -175,10 +228,30 @@ function findNearby() {
       </section>
 
       <section class="quick-links" aria-label="目的から探す">
-        <button @click="query = '海鮮'">海鮮</button>
-        <button @click="query = 'お茶'">お茶</button>
-        <button @click="query = '野菜'">産直</button>
-        <button @click="query = '足湯'">温泉・足湯</button>
+        <button @click="searchByKeyword('海鮮')">海鮮</button>
+        <button @click="searchByKeyword('お茶')">お茶</button>
+        <button @click="searchByKeyword('野菜')">産直</button>
+        <button @click="searchByKeyword('足湯')">温泉・足湯</button>
+        <button @click="searchByKeyword('イベント')">イベント</button>
+      </section>
+
+      <section class="content-section event-feature-section">
+        <div class="section-heading">
+          <div><p class="eyebrow">WHAT'S ON</p><h2>今週末・近日のよりみち</h2></div>
+          <span class="demo-label">デモ表示</span>
+        </div>
+        <div class="event-feature-grid">
+          <article v-for="item in featuredEvents" :key="item.event.id" class="event-feature-card" @click="openStation(item.station)">
+            <div class="event-date">{{ item.event.dateLabel }}</div>
+            <div>
+              <span class="category">{{ item.event.category }}</span>
+              <h3>{{ item.event.title }}</h3>
+              <p>{{ item.event.summary }}</p>
+              <small>{{ item.station.name }}</small>
+            </div>
+          </article>
+        </div>
+        <p class="demo-note">※ 現在のイベントは画面確認用のサンプルです。次の段階で公式情報から取得するAPIへ接続します。</p>
       </section>
 
       <section class="content-section">
@@ -192,7 +265,10 @@ function findNearby() {
           <article v-for="station in filteredStations" :key="station.slug" class="station-card" @click="openStation(station)">
             <div class="station-visual"><span>{{ station.prefecture.replace(/[都道府県]$/, '') }}</span></div>
             <div class="station-card-body">
-              <p class="prefecture">{{ station.prefecture }}</p>
+              <div class="station-meta-line">
+                <p class="prefecture">{{ station.prefecture }}</p>
+                <span v-if="station.distanceKm != null" class="distance">現在地から約{{ station.distanceKm }}km</span>
+              </div>
               <h3>{{ station.name }}</h3>
               <p class="address">{{ station.address }}</p>
               <div class="tags">
@@ -216,6 +292,7 @@ function findNearby() {
         <p>{{ selected.address }}</p>
         <div class="detail-actions">
           <a v-if="selected.websiteUrl" :href="selected.websiteUrl" target="_blank" rel="noreferrer">公式サイト ↗</a>
+          <a :href="mapSearchUrl(selected)" target="_blank" rel="noreferrer" class="secondary-action">地図を開く ↗</a>
           <button>♡ 行きたい</button>
         </div>
       </section>
@@ -225,6 +302,23 @@ function findNearby() {
         <div><small>休館日</small><strong>{{ selected.closingDays ?? '公式情報を確認' }}</strong></div>
         <div><small>普通車</small><strong>{{ selected.parking?.regularCars ?? '—' }}<span v-if="selected.parking?.regularCars">台</span></strong></div>
         <div><small>設備</small><strong>{{ [selected.hasShop && '直売所', selected.hasWifi && 'Wi‑Fi'].filter(Boolean).join('・') || '—' }}</strong></div>
+      </section>
+
+      <section class="content-section detail-section map-section">
+        <div class="section-heading"><div><p class="eyebrow">MAP</p><h2>場所を確認する</h2></div></div>
+        <div class="map-frame-wrap">
+          <iframe
+            class="map-frame"
+            :src="mapEmbedUrl(selected)"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            :title="`${selected.name}の地図`"
+          />
+          <div class="map-caption">
+            <div><strong>{{ selected.name }}</strong><span>{{ selected.address }}</span></div>
+            <a :href="mapSearchUrl(selected)" target="_blank" rel="noreferrer">Google マップで開く →</a>
+          </div>
+        </div>
       </section>
 
       <section class="content-section detail-section">
@@ -244,9 +338,28 @@ function findNearby() {
         <div v-else class="empty-state">特産品情報はこれから追加予定です。公式サイトの情報と合わせて充実させていきます。</div>
       </section>
 
+      <section class="content-section detail-section">
+        <div class="section-heading">
+          <div><p class="eyebrow">EVENTS & NEWS</p><h2>イベント・お知らせ</h2></div>
+          <span v-if="selected.events?.some((event) => event.isDemo)" class="demo-label">デモ表示</span>
+        </div>
+        <div v-if="selected.events?.length" class="event-list">
+          <article v-for="event in selected.events" :key="event.id" class="event-card" :class="{ important: event.important }">
+            <div class="event-card-head">
+              <span class="category">{{ event.category }}</span>
+              <time>{{ event.dateLabel }}</time>
+            </div>
+            <h3>{{ event.title }}</h3>
+            <p>{{ event.summary }}</p>
+            <a v-if="event.officialUrl" :href="event.officialUrl" target="_blank" rel="noreferrer">公式情報を見る →</a>
+          </article>
+        </div>
+        <div v-else class="empty-state">現在表示できるイベント・お知らせはありません。</div>
+      </section>
+
       <section class="content-section detail-section notice-section">
-        <p class="eyebrow">NEXT</p><h2>この先追加していく情報</h2>
-        <p>イベント・臨時休業・混雑情報・口コミ・訪問記録を、この詳細ページに順次まとめていきます。</p>
+        <p class="eyebrow">NEXT</p><h2>旅先で役立つ情報をもっと</h2>
+        <p>次は、公式イベントの自動取得、口コミ、混雑感、訪問記録をこの詳細ページに追加していきます。</p>
       </section>
     </main>
 
