@@ -22,6 +22,7 @@ model Station {
   sourceRecords  StationSourceRecord[]
   parking        ParkingCapacity?
   facilities     StationFacilities?
+  events         StationEvent[]
 }
 
 model StationSourceRecord {
@@ -55,4 +56,27 @@ model StationFacilities {
   hasShop   Boolean @default(false)
   hasWifi   Boolean @default(false)
   station   Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+}
+
+model StationEvent {
+  id          String   @id @default(cuid())
+  stationId   String
+  title       String
+  summary     String?
+  type        String
+  startsAt    DateTime?
+  endsAt      DateTime?
+  priority    Int      @default(0)
+  imageUrl    String?
+  officialUrl String?
+  sourceName  String?
+  sourceUrl   String?
+  trustScore  Int?
+  observedAt  DateTime @default(now())
+  station     Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@index([stationId])
+  @@index([type])
+  @@index([startsAt])
+  @@index([priority])
 }
