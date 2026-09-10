@@ -10,6 +10,9 @@ export async function getStationBySlug(slug: string) {
       events: {
         orderBy: [{ priority: "desc" }, { startsAt: "asc" }, { observedAt: "desc" }],
       },
+      specialties: {
+        orderBy: [{ category: "asc" }, { name: "asc" }],
+      },
     },
   });
 }
