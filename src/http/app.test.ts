@@ -79,6 +79,8 @@ test("GET /api/specialties searches specialties across stations", async () => {
       priceLabel: "1,000円前後",
       salesPlace: "食堂",
       season: null,
+      locationLabel: "食堂",
+      seasonLabel: null,
       officialUrl: "https://example.com/shirasu",
       sourceName: "official",
       sourceUrl: "https://example.com/station",
