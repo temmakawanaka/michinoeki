@@ -23,6 +23,7 @@ model Station {
   parking        ParkingCapacity?
   facilities     StationFacilities?
   events         StationEvent[]
+  specialties    StationSpecialty[]
 }
 
 model StationSourceRecord {
@@ -79,4 +80,26 @@ model StationEvent {
   @@index([type])
   @@index([startsAt])
   @@index([priority])
+}
+
+model StationSpecialty {
+  id          String   @id @default(cuid())
+  stationId   String
+  name        String
+  description String?
+  category    String
+  imageUrl    String?
+  priceLabel  String?
+  salesPlace  String?
+  season      String?
+  officialUrl String?
+  sourceName  String?
+  sourceUrl   String?
+  trustScore  Int?
+  observedAt  DateTime @default(now())
+  station     Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@index([stationId])
+  @@index([category])
+  @@index([name])
 }
