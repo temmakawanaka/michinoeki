@@ -7,7 +7,7 @@ type StationWithRelations = Station & {
 
 type StationDetailWithRelations = StationWithRelations & {
   sourceRecords: StationSourceRecord[];
-  events: StationEvent[];
+  events?: StationEvent[];
 };
 
 function formatEventDate(event: StationEvent) {
@@ -62,7 +62,7 @@ export function mapStationDetail(station: StationDetailWithRelations) {
           largeVehicles: station.parking.largeVehicles,
         }
       : null,
-    events: station.events.map((event) => ({
+    events: (station.events ?? []).map((event) => ({
       id: event.id,
       title: event.title,
       summary: event.summary ?? "",
