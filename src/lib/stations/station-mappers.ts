@@ -68,6 +68,9 @@ export function mapStationSpecialty(specialty: StationSpecialty) {
     priceLabel: specialty.priceLabel,
     salesPlace: specialty.salesPlace,
     season: specialty.season,
+    // Vue MVP initially used these names. Keep aliases during the API/UI transition.
+    locationLabel: specialty.salesPlace,
+    seasonLabel: specialty.season,
     officialUrl: specialty.officialUrl,
     sourceName: specialty.sourceName,
     sourceUrl: specialty.sourceUrl,
