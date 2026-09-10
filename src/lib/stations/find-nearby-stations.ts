@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/db";
 
-import { nearbyStationQuerySchema, type NearbyStationQuery } from "./nearby-station-query-schema";
+import {
+  nearbyStationQuerySchema,
+  type NearbyStationQueryInput,
+} from "./nearby-station-query-schema";
 import { mapStationSummary } from "./station-mappers";
 
 const EARTH_RADIUS_KM = 6371.0088;
@@ -25,7 +28,7 @@ export function calculateDistanceKm(
   return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export async function findNearbyStations(input: NearbyStationQuery) {
+export async function findNearbyStations(input: NearbyStationQueryInput) {
   const query = nearbyStationQuerySchema.parse(input);
 
   const latitudeDelta = query.radiusKm / 111;
