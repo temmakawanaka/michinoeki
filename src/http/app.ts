@@ -13,11 +13,20 @@ const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
 };
 
+function corsHeaders() {
+  return {
+    "access-control-allow-origin": process.env.CORS_ORIGIN ?? "*",
+    "access-control-allow-methods": "GET, OPTIONS",
+    "access-control-allow-headers": "content-type",
+  };
+}
+
 function jsonResponse(body: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(body), {
     ...init,
     headers: {
       ...JSON_HEADERS,
+      ...corsHeaders(),
       ...init.headers,
     },
   });
@@ -96,6 +105,13 @@ async function handleStationDetail(stationSlug: string) {
 }
 
 export async function handleApiRequest(request: Request): Promise<Response> {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders(),
+    });
+  }
+
   if (request.method !== "GET") {
     return jsonResponse(
       {
@@ -104,7 +120,7 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       {
         status: 405,
         headers: {
-          allow: "GET",
+          allow: "GET, OPTIONS",
         },
       },
     );
