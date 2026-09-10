@@ -2,6 +2,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 
 import { getStationBySlug } from "@/lib/stations/get-station-by-slug";
 import { listStationPrefectures } from "@/lib/stations/list-station-prefectures";
+import { searchSpecialties } from "@/lib/stations/search-specialties";
 import { searchStations } from "@/lib/stations/search-stations";
 
 import { handleApiRequest } from "./app";
@@ -14,12 +15,17 @@ vi.mock("@/lib/stations/list-station-prefectures", () => ({
   listStationPrefectures: vi.fn(),
 }));
 
+vi.mock("@/lib/stations/search-specialties", () => ({
+  searchSpecialties: vi.fn(),
+}));
+
 vi.mock("@/lib/stations/search-stations", () => ({
   searchStations: vi.fn(),
 }));
 
 const mockedGetStationBySlug = vi.mocked(getStationBySlug);
 const mockedListStationPrefectures = vi.mocked(listStationPrefectures);
+const mockedSearchSpecialties = vi.mocked(searchSpecialties);
 const mockedSearchStations = vi.mocked(searchStations);
 
 beforeEach(() => {
@@ -76,6 +82,49 @@ test("GET /api/search keeps the old search endpoint available", async () => {
   expect(await response.json()).toEqual({ total: 0, items: [] });
 });
 
+test("GET /api/specialties searches specialties across stations", async () => {
+  mockedSearchSpecialties.mockResolvedValue({
+    total: 1,
+    items: [
+      {
+        id: "specialty-1",
+        name: "しらす丼",
+        description: "地元のしらすを使った名物",
+        category: "グルメ",
+        imageUrl: null,
+        priceLabel: "1,000円前後",
+        salesPlace: "食堂",
+        season: null,
+        officialUrl: "https://example.com/shirasu",
+        sourceName: "official",
+        sourceUrl: "https://example.com/station",
+        trustScore: 100,
+        observedAt: "2026-09-10T00:00:00.000Z",
+        station: {
+          slug: "michinoeki-fuji",
+          name: "道の駅 富士",
+          prefecture: "静岡県",
+        },
+      },
+    ],
+  });
+
+  const response = await handleApiRequest(
+    new Request("http://localhost:3000/api/specialties?q=しらす&category=グルメ"),
+  );
+
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({
+    total: 1,
+    items: [{ name: "しらす丼", station: { slug: "michinoeki-fuji" } }],
+  });
+  expect(mockedSearchSpecialties).toHaveBeenCalledWith({
+    q: "しらす",
+    category: "グルメ",
+    stationSlug: undefined,
+  });
+});
+
 test("GET /api/prefectures lists available prefectures", async () => {
   mockedListStationPrefectures.mockResolvedValue(["北海道", "静岡県"]);
 
@@ -85,7 +134,7 @@ test("GET /api/prefectures lists available prefectures", async () => {
   expect(await response.json()).toEqual({ items: ["北海道", "静岡県"] });
 });
 
-test("GET /api/stations/:slug returns a station detail", async () => {
+test("GET /api/stations/:slug returns a station detail with specialties", async () => {
   mockedGetStationBySlug.mockResolvedValue({
     id: "station-1",
     slug: "michinoeki-fuji",
@@ -111,6 +160,24 @@ test("GET /api/stations/:slug returns a station detail", async () => {
       hasShop: true,
       hasWifi: true,
     },
+    specialties: [
+      {
+        id: "specialty-1",
+        stationId: "station-1",
+        name: "しらす丼",
+        description: "地元のしらすを使った名物",
+        category: "グルメ",
+        imageUrl: null,
+        priceLabel: "1,000円前後",
+        salesPlace: "食堂",
+        season: null,
+        officialUrl: "https://example.com/shirasu",
+        sourceName: "official",
+        sourceUrl: "https://example.com/station",
+        trustScore: 100,
+        observedAt: new Date("2026-09-10T00:00:00.000Z"),
+      },
+    ],
     sourceRecords: [
       {
         id: "source-1",
@@ -135,6 +202,13 @@ test("GET /api/stations/:slug returns a station detail", async () => {
     parking: {
       regularCars: 52,
     },
+    specialties: [
+      {
+        name: "しらす丼",
+        category: "グルメ",
+        observedAt: "2026-09-10T00:00:00.000Z",
+      },
+    ],
     sourceRecords: [
       {
         sourceName: "mlit",
