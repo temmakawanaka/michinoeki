@@ -7,6 +7,9 @@ export async function getStationBySlug(slug: string) {
       facilities: true,
       parking: true,
       sourceRecords: true,
+      specialties: {
+        orderBy: [{ category: "asc" }, { name: "asc" }],
+      },
     },
   });
 }
