@@ -2,6 +2,7 @@ import { ZodError } from "zod";
 
 import { getStationBySlug } from "@/lib/stations/get-station-by-slug";
 import { listStationPrefectures } from "@/lib/stations/list-station-prefectures";
+import { searchSpecialties } from "@/lib/stations/search-specialties";
 import { mapStationDetail } from "@/lib/stations/station-mappers";
 import { stationQuerySchema } from "@/lib/stations/station-query-schema";
 import { searchStations } from "@/lib/stations/search-stations";
@@ -39,6 +40,16 @@ async function handleStationSearch(url: URL) {
   });
 
   return jsonResponse(await searchStations(query));
+}
+
+async function handleSpecialtySearch(url: URL) {
+  return jsonResponse(
+    await searchSpecialties({
+      q: url.searchParams.get("q") ?? "",
+      category: url.searchParams.get("category") ?? undefined,
+      stationSlug: url.searchParams.get("stationSlug") ?? undefined,
+    }),
+  );
 }
 
 async function handleStationDetail(stationSlug: string) {
@@ -86,6 +97,10 @@ export async function handleApiRequest(request: Request): Promise<Response> {
 
     if (path === "/api/stations" || path === "/api/search") {
       return handleStationSearch(url);
+    }
+
+    if (path === "/api/specialties") {
+      return handleSpecialtySearch(url);
     }
 
     if (path === "/api/prefectures") {
