@@ -6,9 +6,29 @@
     <meta name="theme-color" content="#f5f2e9" />
     <meta name="description" content="旅の途中で寄りたい道の駅を探せるガイド" />
     <title>よりみち道の駅</title>
+    <style>
+      .global-map-link {
+        position: fixed;
+        right: 16px;
+        bottom: 18px;
+        z-index: 50;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 12px 16px;
+        border-radius: 999px;
+        background: #31543d;
+        color: #fff;
+        text-decoration: none;
+        font: 700 13px system-ui, sans-serif;
+        box-shadow: 0 8px 24px rgba(31, 42, 35, .22);
+      }
+      .global-map-link:hover { transform: translateY(-1px); }
+    </style>
   </head>
   <body>
     <div id="app"></div>
+    <a class="global-map-link" href="./map.html" aria-label="地図から道の駅を探す">⌖ 地図から探す</a>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
