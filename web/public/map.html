@@ -13,10 +13,11 @@
     header a { color: #31543d; font-weight: 700; text-decoration: none; }
     header strong { font-size: 16px; }
     .toolbar { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; border-bottom: 1px solid #dcd7ca; background: #faf8f2; }
-    .toolbar button { flex: 0 0 auto; border: 1px solid #cbc6b8; background: #fff; border-radius: 999px; padding: 9px 13px; color: #31543d; font-weight: 700; cursor: pointer; }
+    .toolbar button,.toolbar a { flex: 0 0 auto; border: 1px solid #cbc6b8; background: #fff; border-radius: 999px; padding: 9px 13px; color: #31543d; font-weight: 700; cursor: pointer; text-decoration:none; font-size:13px; }
     .toolbar button.active { background: #31543d; color: #fff; border-color: #31543d; }
     #map { height: calc(100vh - 117px); min-height: 480px; }
-    .leaflet-popup-content { min-width: 210px; }
+    .leaflet-popup-content { min-width: 240px; margin: 12px; }
+    .popup-photo { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; background:#e7e5d9; }
     .popup-pref { color: #8c5f3d; font-size: 11px; font-weight: 700; }
     .popup-title { margin: 5px 0; font-size: 17px; font-weight: 800; }
     .popup-address { margin: 0 0 9px; color: #6d746d; font-size: 12px; line-height: 1.6; }
@@ -24,6 +25,8 @@
     .popup-tags span { padding: 4px 7px; border-radius: 999px; background: #ece9df; font-size: 10px; }
     .popup-tags .saved { background: #f3dfd4; color: #8c4d39; }
     .popup-tags .visited { background: #dfe9e1; color: #31543d; }
+    .popup-meta { margin-top:9px; font-size:11px; color:#667068; }
+    .popup-source { display:block; margin-top:8px; font-size:9px; color:#858b85; text-decoration:underline; }
     .legend { position: absolute; z-index: 500; left: 12px; bottom: 22px; background: rgba(255,255,255,.95); border: 1px solid #d8d2c5; border-radius: 12px; padding: 9px 11px; font-size: 11px; line-height: 1.7; box-shadow: 0 5px 20px rgba(0,0,0,.08); }
     .dot { display:inline-block; width:9px; height:9px; margin-right:5px; border-radius:50%; background:#31543d; }
     .dot.saved { background:#8c5f3d; }
@@ -34,13 +37,14 @@
   <header>
     <a href="./">← 一覧へ戻る</a>
     <strong>地図から道の駅を探す</strong>
-    <span></span>
+    <a href="./explore.html">写真 →</a>
   </header>
   <div class="toolbar">
     <button id="all" class="active">すべて</button>
     <button id="saved">♡ 行きたい</button>
     <button id="visited">✓ 訪問済み</button>
     <button id="nearby">◎ 現在地</button>
+    <a href="./explore.html">▣ 写真一覧</a>
   </div>
   <div id="map"></div>
   <div class="legend"><div><span class="dot"></span>道の駅</div><div><span class="dot saved"></span>行きたい</div><div><span class="dot visited"></span>訪問済み</div></div>
@@ -50,9 +54,12 @@
     const FAVORITES_KEY = 'michinoeki:favorites:v1';
     const VISITED_KEY = 'michinoeki:visited:v1';
     const stations = [
-      { slug:'michinoeki-fuji', name:'道の駅 富士', prefecture:'静岡県', address:'静岡県富士市五貫島669-1', lat:35.1419, lng:138.6497, picks:['しらす丼','静岡茶'] },
-      { slug:'kakegawa', name:'道の駅 掛川', prefecture:'静岡県', address:'静岡県掛川市八坂882-1', lat:34.7698, lng:138.0546, picks:['深蒸し茶','地元野菜'] },
-      { slug:'shiomizaka', name:'道の駅 潮見坂', prefecture:'静岡県', address:'静岡県湖西市白須賀1896-2', lat:34.6909, lng:137.4990, picks:['しらす','足湯'] },
+      { slug:'michinoeki-fuji', name:'道の駅 富士', prefecture:'静岡県', address:'静岡県富士市五貫島669-1', lat:35.13339, lng:138.64708, hours:'9:00〜20:00', parking:'普通車71台', picks:['しらす','静岡茶'], image:'https://commons.wikimedia.org/wiki/Special:FilePath/Michinoeki-Fuji.jpg', source:'https://commons.wikimedia.org/wiki/Category:Michinoeki_Fuji' },
+      { slug:'kakegawa', name:'道の駅 掛川', prefecture:'静岡県', address:'静岡県掛川市八坂882-1', lat:34.7940764, lng:138.0760217, hours:'直売所 9:00〜17:00', parking:'普通車226台', picks:['深蒸し茶','地元野菜'], image:'https://commons.wikimedia.org/wiki/Special:FilePath/Michinoeki-kakegawa.jpg', source:'https://commons.wikimedia.org/wiki/File:Michinoeki-kakegawa.jpg' },
+      { slug:'shiomizaka', name:'道の駅 潮見坂', prefecture:'静岡県', address:'静岡県湖西市白須賀1896-2', lat:34.6772912, lng:137.4984176, hours:'8:00〜18:30', parking:'普通車112台', picks:['海産物','足湯'], image:'https://commons.wikimedia.org/wiki/Special:FilePath/%E9%81%93%E3%81%AE%E9%A7%85%E6%BD%AE%E8%A6%8B%E5%9D%8201.jpg', source:'https://commons.wikimedia.org/wiki/File:%E9%81%93%E3%81%AE%E9%A7%85%E6%BD%AE%E8%A6%8B%E5%9D%8201.jpg' },
+      { slug:'asagiri-kogen', name:'道の駅 朝霧高原', prefecture:'静岡県', address:'静岡県富士宮市根原492-14', lat:35.4133645, lng:138.5912489, hours:'8:00〜17:00', parking:'普通車74台', picks:['富士山','高原グルメ'], image:'https://commons.wikimedia.org/wiki/Special:FilePath/Michinoeki%20Asagirikogen.JPG', source:'https://commons.wikimedia.org/wiki/File:Michinoeki_Asagirikogen.JPG' },
+      { slug:'kawane-onsen', name:'道の駅 川根温泉', prefecture:'静岡県', address:'静岡県島田市川根町笹間渡220', lat:34.9599023, lng:138.0897253, hours:'9:00〜19:00', parking:'普通車78台', picks:['温泉','川根茶'], image:'https://commons.wikimedia.org/wiki/Special:FilePath/%E9%81%93%E3%81%AE%E9%A7%85%E5%B7%9D%E6%A0%B9%E6%B8%A9%E6%B3%89.jpg', source:'https://commons.wikimedia.org/wiki/File:%E9%81%93%E3%81%AE%E9%A7%85%E5%B7%9D%E6%A0%B9%E6%B8%A9%E6%B3%89.jpg' },
+      { slug:'subashiri', name:'道の駅 すばしり', prefecture:'静岡県', address:'静岡県駿東郡小山町須走338-41', lat:35.3627303, lng:138.8588152, hours:'9:00〜19:00', parking:'普通車111台', picks:['富士山','足湯'], image:'https://commons.wikimedia.org/wiki/Special:FilePath/Michinoeki%20Subashiri%20and%20Mount%20Fuji%20s2.JPG', source:'https://commons.wikimedia.org/wiki/File:Michinoeki_Subashiri_and_Mount_Fuji_s2.JPG' },
     ];
 
     function loadList(key) {
@@ -62,7 +69,7 @@
 
     const saved = new Set(loadList(FAVORITES_KEY));
     const visited = new Set(loadList(VISITED_KEY));
-    const map = L.map('map', { zoomControl: true }).setView([34.92, 137.95], 8);
+    const map = L.map('map', { zoomControl: true }).setView([34.96, 138.08], 8);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
@@ -83,7 +90,7 @@
         saved.has(station.slug) ? '<span class="saved">♥ 行きたい</span>' : '',
         visited.has(station.slug) ? '<span class="visited">✓ 訪問済み</span>' : ''
       ].join('');
-      return `<div class="popup-pref">${station.prefecture}</div><div class="popup-title">${station.name}</div><p class="popup-address">${station.address}</p><div class="popup-tags">${tags}</div>`;
+      return `<img class="popup-photo" src="${station.image}" alt="${station.name}"><div class="popup-pref">${station.prefecture}</div><div class="popup-title">${station.name}</div><p class="popup-address">${station.address}</p><div class="popup-tags">${tags}</div><div class="popup-meta">${station.hours} ・ ${station.parking}</div><a class="popup-source" href="${station.source}" target="_blank" rel="noreferrer">写真出典・ライセンス: Wikimedia Commons</a>`;
     }
 
     function render() {
@@ -92,11 +99,11 @@
       visible.forEach(station => {
         L.circleMarker([station.lat, station.lng], {
           radius: 10, color: '#fff', weight: 3, fillColor: markerColor(station), fillOpacity: 1
-        }).bindPopup(popup(station)).addTo(layer);
+        }).bindPopup(popup(station), { maxWidth: 280 }).addTo(layer);
       });
       if (visible.length) {
         const bounds = L.latLngBounds(visible.map(s => [s.lat, s.lng]));
-        map.fitBounds(bounds.pad(0.22), { maxZoom: 11 });
+        map.fitBounds(bounds.pad(0.16), { maxZoom: 11 });
       }
     }
 
