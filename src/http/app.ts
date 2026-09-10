@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 
+import { findNearbyStations } from "@/lib/stations/find-nearby-stations";
 import { getStationBySlug } from "@/lib/stations/get-station-by-slug";
 import { listStationPrefectures } from "@/lib/stations/list-station-prefectures";
 import { mapStationDetail } from "@/lib/stations/station-mappers";
@@ -39,6 +40,17 @@ async function handleStationSearch(url: URL) {
   });
 
   return jsonResponse(await searchStations(query));
+}
+
+async function handleNearbyStationSearch(url: URL) {
+  return jsonResponse(
+    await findNearbyStations({
+      lat: url.searchParams.get("lat"),
+      lng: url.searchParams.get("lng"),
+      radiusKm: url.searchParams.get("radiusKm") ?? undefined,
+      limit: url.searchParams.get("limit") ?? undefined,
+    }),
+  );
 }
 
 async function handleStationDetail(stationSlug: string) {
@@ -86,6 +98,10 @@ export async function handleApiRequest(request: Request): Promise<Response> {
 
     if (path === "/api/stations" || path === "/api/search") {
       return handleStationSearch(url);
+    }
+
+    if (path === "/api/stations/nearby") {
+      return handleNearbyStationSearch(url);
     }
 
     if (path === "/api/prefectures") {
